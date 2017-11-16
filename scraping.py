@@ -23,7 +23,7 @@ uid = driver.find_element_by_name('login_id')
 pw = driver.find_element_by_name('password')
 uid.send_keys(user_name)
 pw.send_keys(password)
-# Login button
+# Click the login button
 driver.find_element_by_xpath('//*[@id="LoginPanel"]/form/input[3]').click()
 
 driver.get('https://m-linker.infinitec.co.jp/MobileGates2/ReceivedataView')
@@ -53,23 +53,3 @@ driver.find_element_by_name('recievedata').click()
 # Download the .csv file
 time.sleep(5)
 driver.find_element_by_xpath('//*[@id="dataExport"]').click()
-
-# Load the .csv file
-time.sleep(5)
-num = 1
-dic = {}
-if num == 1:
-    csv_name = 'receivedata.csv'
-elif num > 1:
-    csv_name = 'receivedata ({:d}).csv'.format(num - 1)
-csv_path = 'C:/Users/admin/Downloads/{}'.format(csv_name)
-
-if os.path.exists(csv_path):
-    with open(csv_path, 'r') as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        dic['Kenshouki{:04d}'.format(num)] = [csv_name, reader]
-else:
-    pass
-
-num += 1

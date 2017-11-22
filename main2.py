@@ -109,6 +109,38 @@ class DigitalCounter(threading.Thread):
                     hostname=HOST,
                     auth={'username': USERNAME, 'password': PASSWORD})
             time.sleep(self.global_period)
+
+
+class AnalogSensors(threading.Thread):
+    def __init__(self, global_period):
+        super(AnalogSensors, self).__init__()
+        self.global_period = global_period
+        self.setDaemon(True)
+
+    def run(self):
+        t = 0
+        dt = 0.1
+        while True:
+            tm = time.time()
+            a1 = np.random.rand() + 10 + 10*np.sin(2*np.pi*t)
+            a2 = np.random.rand() + 20 + 20*np.sin(2*np.pi*t)
+            a3 = np.random.rand() + 30 + 30*np.sin(2*np.pi*t)
+            a4 = np.random.rand() + 40 + 40*np.sin(2*np.pi*t)
+            a5 = np.random.rand() + 10 + 10*np.cos(2*np.pi*t)
+            a6 = np.random.rand() + 20 + 20*np.cos(2*np.pi*t)
+            a7 = np.random.rand() + 30 + 30*np.cos(2*np.pi*t)
+            a8 = np.random.rand() + 40 + 40*np.cos(2*np.pi*t)
+            data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
+            payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*data)
+            print 'Analog: {}\n'.format(payload)
+            publish.single(topic=TOPIC,
+                    payload=payload,
+                    hostname=HOST,
+                    auth={'username': USERNAME, 'password': PASSWORD})
+            time.sleep(self.global_period)
+            t += dt
+
+
 class Device(threading.Thread):
     def __init__(self, username, password, device_id, message, host, port=1883,
             beacon_period=60, env_period=720, global_digital_period=60,

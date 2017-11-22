@@ -90,12 +90,25 @@ class DigitalSensors(threading.Thread):
                     auth={'username': USERNAME, 'password': PASSWORD})
             time.sleep(self.global_period)
 
-class AnalogGroup(object):
-    def __init__(self):
-        self.period = 0
-        self.toggle = [False] * 8
 
+class DigitalCounter(threading.Thread):
+    def __init__(self, global_period):
+        super(DigitalCounter, self).__init__()
+        self.global_period = global_period
+        self.setDaemon(True)
 
+    def run(self):
+        while True:
+            tm = time.time()
+            d7 = np.random.randint(0, 2)
+            data = [tm, a7]
+            payload = '{{"tm":"{0}","d7":{7}}}'.format(*data)
+            print 'DigiCntr: {}\n'.format(payload)
+            publish.single(topic=TOPIC,
+                    payload=payload,
+                    hostname=HOST,
+                    auth={'username': USERNAME, 'password': PASSWORD})
+            time.sleep(self.global_period)
 class Device(threading.Thread):
     def __init__(self, username, password, device_id, message, host, port=1883,
             beacon_period=60, env_period=720, global_digital_period=60,

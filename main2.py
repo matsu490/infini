@@ -53,8 +53,8 @@ class EnvironmentalInformation(threading.Thread):
             seaPrs = np.random.rand() + 1000 + np.sin(2*np.pi*t)
             eiTemp = np.random.rand() + 20 + np.sin(2*np.pi*t)
             eiHumi = np.random.rand() + 50 + np.sin(2*np.pi*t)
-            data = [tm, eiPrs, seaPrs, eiTemp, eiHumi]
-            payload = '{{"tm":"{0}","eiPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
+            data = [tm, eiLPrs, seaPrs, eiTemp, eiHumi]
+            payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
             print 'EnvInfo: {}\n'.format(payload)
             publish.single(topic=TOPIC,
                     payload=payload,

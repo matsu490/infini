@@ -196,12 +196,14 @@ class Device(threading.Thread):
 
 
 if __name__ == '__main__':
-    beacon = Beacon(period=60)
-    envinfo = EnvironmentalInformation(period=720)
-    digisnsr = DigitalSensors(global_period=60)
+    beacon = Beacon(period=10)
+    envinfo = EnvironmentalInformation(period=10)
+    digisnsrs = DigitalSensors(global_period=10)
+    anasnsrs = AnalogSensors(global_period=10)
     beacon.start()
     envinfo.start()
-    digisnsr.start()
+    digisnsrs.start()
+    anasnsrs.start()
 
     while True:
         c = sys.stdin.read(1)

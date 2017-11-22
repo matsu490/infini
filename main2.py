@@ -26,6 +26,7 @@ class Beacon(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
+        time.sleep(5 * np.random.rand())
         while True:
             tm = time.time()
             data = [tm, self.message]
@@ -45,6 +46,7 @@ class EnvironmentalInformation(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
+        time.sleep(5 * np.random.rand())
         t = 0
         dt = 0.1
         while True:
@@ -71,6 +73,7 @@ class DigitalSensors(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
+        time.sleep(5 * np.random.rand())
         while True:
             tm = time.time()
             d1 = np.random.randint(0, 2)
@@ -98,6 +101,7 @@ class AnalogSensors(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
+        time.sleep(5 * np.random.rand())
         t = 0
         dt = 0.1
         while True:

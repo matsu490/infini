@@ -126,10 +126,10 @@ class AnalogSensors(threading.Thread):
 
 
 if __name__ == '__main__':
-    beacon = Beacon(period=10)
-    envinfo = EnvironmentalInformation(period=10)
-    digisnsrs = DigitalSensors(global_period=10)
-    anasnsrs = AnalogSensors(global_period=10)
+    beacon = Beacon(period=60)
+    envinfo = EnvironmentalInformation(period=720)
+    digisnsrs = DigitalSensors(global_period=60)
+    anasnsrs = AnalogSensors(global_period=15)
     beacon.start()
     envinfo.start()
     digisnsrs.start()

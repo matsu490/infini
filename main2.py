@@ -79,31 +79,11 @@ class DigitalSensors(threading.Thread):
             d4 = np.random.randint(0, 2)
             d5 = np.random.randint(0, 2)
             d6 = np.random.randint(0, 2)
-            # d7 = np.random.randint(0, 2)
+            d7 = np.random.randint(0, 100)
             d8 = np.random.randint(0, 2)
-            data = [tm, d1, d2, d3, d4, d5, d6, d8]
-            payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d8":{7}}}'.format(*data)
+            data = [tm, d1, d2, d3, d4, d5, d6, d7, d8]
+            payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d7":{7},"d8":{8}}}'.format(*data)
             print 'Digital: {}\n'.format(payload)
-            publish.single(topic=TOPIC,
-                    payload=payload,
-                    hostname=HOST,
-                    auth={'username': USERNAME, 'password': PASSWORD})
-            time.sleep(self.global_period)
-
-
-class DigitalCounter(threading.Thread):
-    def __init__(self, global_period):
-        super(DigitalCounter, self).__init__()
-        self.global_period = global_period
-        self.setDaemon(True)
-
-    def run(self):
-        while True:
-            tm = time.time()
-            d7 = np.random.randint(0, 2)
-            data = [tm, a7]
-            payload = '{{"tm":"{0}","d7":{7}}}'.format(*data)
-            print 'DigiCntr: {}\n'.format(payload)
             publish.single(topic=TOPIC,
                     payload=payload,
                     hostname=HOST,
@@ -139,60 +119,6 @@ class AnalogSensors(threading.Thread):
                     auth={'username': USERNAME, 'password': PASSWORD})
             time.sleep(self.global_period)
             t += dt
-
-
-class Device(threading.Thread):
-    def __init__(self, username, password, device_id, message, host, port=1883,
-            beacon_period=60, env_period=720, global_digital_period=60,
-            analog=False, csv=False, save_dir='./MG2_send_data/'):
-        super(Device, self).__init__()
-        self.period = period
-        self.host = host
-        self.port = port
-        self.username = username
-        self.password = password
-        self.device_id = device_id
-        self.topic = '%s/%s' % (password, device_id)
-        self.message = message
-        self.analog = analog
-        self.csv = csv
-        self.save_dir = save_dir
-        self.init_csv()
-        self.setDaemon(True)
-
-    def run(self):
-        while True:
-            tm = time.time()
-            if self.analog:
-                data = [tm, '300.00', '2.00', '3.00', '4.00', '5.00', '6.00', '7.00', '8.00', self.message]
-                payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8},"msg":"{9}"}}'.format(*data)
-            else:
-                data = [tm, self.message]
-                payload = '{{"tm":"{0}","msg":"{1}"}}'.format(*data)
-            publish.single(topic='%s/%s' % (self.password, self.device_id),
-                    payload=payload,
-                    hostname=self.host,
-                    auth={'username': self.username, 'password': self.password})
-            if self.csv:
-                d = datetime.datetime.fromtimestamp(tm)
-                data[0] = '{0}-{1}-{2} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
-                with open('{0}{1}.csv'.format(self.save_dir, self.device_id), 'a') as f:
-                    writer = csv.writer(f, lineterminator=',\n')
-                    writer.writerow(data)
-            print tm, self.message
-            time.sleep(self.period)
-
-    def init_csv(self):
-        if self.csv:
-            if not os.path.exists(self.save_dir):
-                os.mkdir(self.save_dir)
-            with open('{0}{1}.csv'.format(self.save_dir, self.device_id), 'w') as f:
-                writer = csv.writer(f, lineterminator='\n')
-                if self.analog:
-                    header = ['tm','a1','a2','a3','a4','a5','a6','a7','a8','msg']
-                else:
-                    header = ['tm','msg']
-                writer.writerow(header)
 
 
 if __name__ == '__main__':

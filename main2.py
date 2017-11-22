@@ -29,7 +29,7 @@ class Beacon(threading.Thread):
         while True:
             tm = time.time()
             data = [tm, self.message]
-            payload = '{{"tm":"{0}","msg":"{1}"}}'.format(*data)
+            payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*data)
             print 'Beacon: {}\n'.format(payload)
             publish.single(topic=TOPIC,
                     payload=payload,

@@ -49,10 +49,10 @@ class EnvironmentalInformation(threading.Thread):
         dt = 0.1
         while True:
             tm = time.time()
-            eiPrs = np.random.rand() + 900 + np.sin(2*np.pi*t)
-            seaPrs = np.random.rand() + 1000 + np.sin(2*np.pi*t)
-            eiTemp = np.random.rand() + 20 + np.sin(2*np.pi*t)
-            eiHumi = np.random.rand() + 50 + np.sin(2*np.pi*t)
+            eiLPrs = np.random.rand() + 900 + 100*np.sin(2*np.pi*t)
+            seaPrs = np.random.rand() + 1000 + 100*np.sin(2*np.pi*t)
+            eiTemp = np.random.rand() + 20 + 10*np.sin(2*np.pi*t)
+            eiHumi = np.random.rand() + 50 + 30*np.sin(2*np.pi*t)
             data = [tm, eiLPrs, seaPrs, eiTemp, eiHumi]
             payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
             print 'EnvInfo: {}\n'.format(payload)

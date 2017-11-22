@@ -79,10 +79,10 @@ class DigitalSensors(threading.Thread):
             d4 = np.random.randint(0, 2)
             d5 = np.random.randint(0, 2)
             d6 = np.random.randint(0, 2)
-            d7 = np.random.randint(0, 2)
+            # d7 = np.random.randint(0, 2)
             d8 = np.random.randint(0, 2)
-            data = [tm, d1, d2, d3, d4, d5, d6, d7, d8]
-            payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d7":{7},"d8":{8}}}'.format(*data)
+            data = [tm, d1, d2, d3, d4, d5, d6, d8]
+            payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d8":{7}}}'.format(*data)
             print 'Digital: {}\n'.format(payload)
             publish.single(topic=TOPIC,
                     payload=payload,

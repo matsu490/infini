@@ -82,13 +82,14 @@ class EnvironmentalInformation(threading.Thread):
 
 
 class DigitalSensors(threading.Thread):
-    def __init__(self, username, password, host, device_id, global_period):
+    def __init__(self, username, password, host, device_id, global_period, counter=[]):
         super(DigitalSensors, self).__init__()
         self.username = username
         self.password = password
         self.host = host
         self.device_id = device_id
         self.global_period = global_period
+        self.counter = counter
         self.setDaemon(True)
 
     def run(self):
@@ -100,15 +101,11 @@ class DigitalSensors(threading.Thread):
 
     def _make_data(self):
         tm = time.time()
-        d1 = np.random.randint(0, 2)
-        d2 = np.random.randint(0, 2)
-        d3 = np.random.randint(0, 2)
-        d4 = np.random.randint(0, 2)
-        d5 = np.random.randint(0, 2)
-        d6 = np.random.randint(0, 2)
-        d7 = np.random.randint(0, 100)
-        d8 = np.random.randint(0, 2)
-        self.data = [tm, d1, d2, d3, d4, d5, d6, d7, d8]
+        tmp = 8 * [np.random.randint(0, 2)]
+        for i in self.counter:
+            tmp[i-1] = np.random.randint(0, 50)
+        # if a sensor is digital counter, returning randint(0, 50)
+        self.data = [tm] + tmp
 
     def _send_data(self):
         payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d7":{7},"d8":{8}}}'.format(*self.data)
@@ -166,7 +163,7 @@ class Device(object):
         self.device_id = device_id
         self.beacon = Beacon(username, password, host, device_id, p_beacon, message=device_id)
         self.envinfo = EnvironmentalInformation(username, password, host, device_id, p_env)
-        self.digisnsrs = DigitalSensors(username, password, host, device_id, p_digi)
+        self.digisnsrs = DigitalSensors(username, password, host, device_id, p_digi, counter=[1, 4, 7])
         self.anasnsrs = AnalogSensors(username, password, host, device_id, p_ana)
 
     def switch_on(self):

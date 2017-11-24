@@ -19,10 +19,14 @@ from params import *
 
 
 class Beacon(threading.Thread):
-    def __init__(self, period):
+    def __init__(self, username, password, host, device_id, period, message):
         super(Beacon, self).__init__()
+        self.username = username
+        self.password = password
+        self.host = host
+        self.device_id = device_id
         self.period = period
-        self.message = DEVICE_ID
+        self.message = message
         self.setDaemon(True)
 
     def run(self):
@@ -32,16 +36,22 @@ class Beacon(threading.Thread):
             data = [tm, self.message]
             payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*data)
             print 'Beacon: {}\n'.format(payload)
-            publish.single(topic=TOPIC,
+            publish.single(
+                    topic='{}/{}'.format(self.password, self.device_id),
                     payload=payload,
-                    hostname=HOST,
-                    auth={'username': USERNAME, 'password': PASSWORD})
+                    hostname=self.host,
+                    auth={'username': self.username,
+                        'password': self.password})
             time.sleep(self.period)
 
 
 class EnvironmentalInformation(threading.Thread):
-    def __init__(self, period):
+    def __init__(self, username, password, host, device_id, period):
         super(EnvironmentalInformation, self).__init__()
+        self.username = username
+        self.password = password
+        self.host = host
+        self.device_id = device_id
         self.period = period
         self.setDaemon(True)
 
@@ -58,17 +68,23 @@ class EnvironmentalInformation(threading.Thread):
             data = [tm, eiLPrs, seaPrs, eiTemp, eiHumi]
             payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
             print 'EnvInfo: {}\n'.format(payload)
-            publish.single(topic=TOPIC,
+            publish.single(
+                    topic='{}/{}'.format(self.password, self.device_id),
                     payload=payload,
-                    hostname=HOST,
-                    auth={'username': USERNAME, 'password': PASSWORD})
+                    hostname=self.host,
+                    auth={'username': self.username,
+                        'password': self.password})
             time.sleep(self.period)
             t += dt
 
 
 class DigitalSensors(threading.Thread):
-    def __init__(self, global_period):
+    def __init__(self, username, password, host, device_id, global_period):
         super(DigitalSensors, self).__init__()
+        self.username = username
+        self.password = password
+        self.host = host
+        self.device_id = device_id
         self.global_period = global_period
         self.setDaemon(True)
 
@@ -87,16 +103,22 @@ class DigitalSensors(threading.Thread):
             data = [tm, d1, d2, d3, d4, d5, d6, d7, d8]
             payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d7":{7},"d8":{8}}}'.format(*data)
             print 'Digital: {}\n'.format(payload)
-            publish.single(topic=TOPIC,
+            publish.single(
+                    topic='{}/{}'.format(self.password, self.device_id),
                     payload=payload,
-                    hostname=HOST,
-                    auth={'username': USERNAME, 'password': PASSWORD})
+                    hostname=self.host,
+                    auth={'username': self.username,
+                        'password': self.password})
             time.sleep(self.global_period)
 
 
 class AnalogSensors(threading.Thread):
-    def __init__(self, global_period):
+    def __init__(self, username, password, host, device_id, global_period):
         super(AnalogSensors, self).__init__()
+        self.username = username
+        self.password = password
+        self.host = host
+        self.device_id = device_id
         self.global_period = global_period
         self.setDaemon(True)
 
@@ -117,23 +139,54 @@ class AnalogSensors(threading.Thread):
             data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
             payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*data)
             print 'Analog: {}\n'.format(payload)
-            publish.single(topic=TOPIC,
+            publish.single(
+                    topic='{}/{}'.format(self.password, self.device_id),
                     payload=payload,
-                    hostname=HOST,
-                    auth={'username': USERNAME, 'password': PASSWORD})
+                    hostname=self.host,
+                    auth={'username': self.username,
+                        'password': self.password})
             time.sleep(self.global_period)
             t += dt
 
 
+class Device(object):
+    def __init__(self, username, password, host, device_id, p_beacon=60, p_env=720, p_digi=60, p_ana=15):
+        self.username = username
+        self.password = password
+        self.host = host
+        self.device_id = device_id
+        self.beacon = Beacon(username, password, host, device_id, p_beacon, message=device_id)
+        self.envinfo = EnvironmentalInformation(username, password, host, device_id, p_env)
+        self.digisnsrs = DigitalSensors(username, password, host, device_id, p_digi)
+        self.anasnsrs = AnalogSensors(username, password, host, device_id, p_ana)
+
+    def switch_on(self):
+        self.beacon.start()
+        self.envinfo.start()
+        self.digisnsrs.start()
+        self.anasnsrs.start()
+
+class Devices(object):
+    def __init__(self, n, username, password, host):
+        self.n = n
+        self.username = username
+        self.password = password
+        self.host = host
+        self.devices = {}
+        for i in xrange(1, n+1):
+            id = '{:04d}'.format(i)
+            device_id = 'IFT_ML1-YONEZAWA{}'.format(id)
+            self.devices[id] = Device(username, password, host, device_id)
+
+    def switch_on(self):
+        for i in xrange(1, self.n+1):
+            id = '{:04d}'.format(i)
+            self.devices[id].switch_on()
+
+
 if __name__ == '__main__':
-    beacon = Beacon(period=60)
-    envinfo = EnvironmentalInformation(period=720)
-    digisnsrs = DigitalSensors(global_period=60)
-    anasnsrs = AnalogSensors(global_period=15)
-    beacon.start()
-    envinfo.start()
-    digisnsrs.start()
-    anasnsrs.start()
+    devices = Devices(4, USERNAME, PASSWORD, HOST)
+    devices.switch_on()
 
     while True:
         c = sys.stdin.read(1)

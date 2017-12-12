@@ -91,7 +91,7 @@ class DigitalSensors(object):
 
     def run(self):
         for sensor in self.sensors.values():
-            sensor.run()
+            sensor.start()
 
 
 class DigitalSensor(threading.Thread):
@@ -129,7 +129,7 @@ class DigitalCounters(object):
 
     def run(self):
         for counter in self.counters.values():
-            counter.run()
+            counter.start()
 
 
 class DigitalCounter(threading.Thread):
@@ -218,7 +218,7 @@ class Device(object):
         self.device_id = device_id
         self.beacon = Beacon(username, password, host, device_id, p_beacon, message=device_id)
         self.envinfo = EnvironmentalInformation(username, password, host, device_id, p_env)
-        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=[0, 0, 0, 0, 0, 0, 30, 0])
+        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=[0, 0, 0, 0, 0, 0, 60, 0])
         self.anasnsrs = AnalogSensors(username, password, host, device_id, p_ana)
 
     def switch_on(self):
@@ -226,6 +226,7 @@ class Device(object):
         self.envinfo.start()
         self.digital_elems.run()
         self.anasnsrs.start()
+
 
 class Devices(object):
     def __init__(self, n, username, password, host):

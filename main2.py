@@ -82,14 +82,14 @@ class EnvironmentalInformation(threading.Thread):
 
 
 class DigitalSensors(threading.Thread):
-    def __init__(self, username, password, host, device_id, global_period, counter=[]):
+    def __init__(self, username, password, host, device_id, port_ids, period):
         super(DigitalSensors, self).__init__()
         self.username = username
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.global_period = global_period
-        self.counter = counter
+        self.port_ids = port_ids
+        self.period = period
         self.setDaemon(True)
 
     def run(self):
@@ -97,22 +97,71 @@ class DigitalSensors(threading.Thread):
         while True:
             self._make_data()
             self._send_data()
-            time.sleep(self.global_period)
+            time.sleep(self.period)
 
     def _make_data(self):
         tm = time.time()
-        tmp = 8 * [np.random.randint(0, 2)]
-        for i in self.counter:
-            tmp[i-1] = np.random.randint(0, 50)
-        # if a sensor is digital counter, returning randint(0, 50)
-        self.data = [tm] + tmp
+        self.data = ['"tm":{0}'.format(tm)]
+        for port_id in self.port_ids:
+            self.data.append('"d{0}":{1}'.format(port_id, np.random.randint(0, 2)))
 
     def _send_data(self):
-        payload = '{{"tm":"{0}","d1":{1},"d2":{2},"d3":{3},"d4":{4},"d5":{5},"d6":{6},"d7":{7},"d8":{8}}}'.format(*self.data)
-        print 'Digital: {}\n'.format(payload)
+        payload = '{{{0}}}'.format(','.join(self.data))
+        print 'Digital sensor: {}\n'.format(payload)
         publish.single(topic='{}/{}'.format(self.password, self.device_id),
                 payload=payload, hostname=self.host,
                 auth={'username': self.username, 'password': self.password})
+
+
+class DigitalCounters(object):
+    def __init__(self, username, password, host, device_id, port_ids, periods):
+        self.port_ids = port_ids
+        self.periods = periods
+        self.counters = {}
+        for i, (port_id, period) in enumerate(zip(port_ids, periods)):
+            self.counters[i] = DigitalCounter(username, password, host, device_id, port_id, period)
+
+    def run(self):
+        for counter in self.counters.values():
+            counter.start()
+
+
+class DigitalCounter(threading.Thread):
+    def __init__(self, username, password, host, device_id, port_id, period):
+        super(DigitalCounter, self).__init__()
+        self.username = username
+        self.password = password
+        self.host = host
+        self.device_id = device_id
+        self.port_id = port_id
+        self.period = period
+        self.setDaemon(True)
+
+    def run(self):
+        time.sleep(5 * np.random.rand())
+        while True:
+            self._send_data()
+            time.sleep(self.period)
+
+    def _send_data(self):
+        payload = '{{"tm":"{0}","d{1}":{2}}}'.format(time.time(), self.port_id, np.random.randint(0, 50))
+        print 'Digital counter: {}\n'.format(payload)
+        publish.single(topic='{}/{}'.format(self.password, self.device_id),
+                payload=payload, hostname=self.host,
+                auth={'username': self.username, 'password': self.password})
+
+
+class DigitalElements(object):
+    def __init__(self, username, password, host, device_id, global_period, periods=8*[0]):
+        sensor_ids = [i+1 for i, p in enumerate(periods) if p==0]
+        counter_ids = list(set(xrange(1, 9)) - set(sensor_ids))
+        counter_periods = [p for p in periods if p!=0]
+        self.sensors = DigitalSensors(username, password, host, device_id, sensor_ids, global_period)
+        self.counters = DigitalCounters(username, password, host, device_id, counter_ids, counter_periods)
+
+    def run(self):
+        self.sensors.start()
+        self.counters.run()
 
 
 class AnalogSensors(threading.Thread):
@@ -163,14 +212,15 @@ class Device(object):
         self.device_id = device_id
         self.beacon = Beacon(username, password, host, device_id, p_beacon, message=device_id)
         self.envinfo = EnvironmentalInformation(username, password, host, device_id, p_env)
-        self.digisnsrs = DigitalSensors(username, password, host, device_id, p_digi, counter=[1, 4, 7])
+        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=[0, 0, 0, 0, 0, 0, 60, 0])
         self.anasnsrs = AnalogSensors(username, password, host, device_id, p_ana)
 
     def switch_on(self):
         self.beacon.start()
         self.envinfo.start()
-        self.digisnsrs.start()
+        self.digital_elems.run()
         self.anasnsrs.start()
+
 
 class Devices(object):
     def __init__(self, n, username, password, host):

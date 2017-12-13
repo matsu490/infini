@@ -230,14 +230,12 @@ class Devices(object):
         self.host = host
         self.devices = {}
         for i in xrange(1, n+1):
-            id = '{:04d}'.format(i)
-            device_id = 'IFT_ML1-YONEZAWA{}'.format(id)
-            self.devices[id] = Device(username, password, host, device_id)
+            device_id = 'IFT_ML1-YONEZAWA{}'.format('{:04d}'.format(i))
+            self.devices[i] = Device(username, password, host, device_id)
 
     def switch_on(self):
         for i in xrange(1, self.n+1):
-            id = '{:04d}'.format(i)
-            self.devices[id].switch_on()
+            self.devices[i].switch_on()
 
 
 if __name__ == '__main__':

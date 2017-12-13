@@ -205,14 +205,14 @@ class AnalogSensors(threading.Thread):
 
 
 class Device(object):
-    def __init__(self, username, password, host, device_id, p_beacon=60, p_env=720, p_digi=60, p_ana=15):
+    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD, p_ana=15):
         self.username = username
         self.password = password
         self.host = host
         self.device_id = device_id
         self.beacon = Beacon(username, password, host, device_id, p_beacon, message=device_id)
         self.envinfo = EnvironmentalInformation(username, password, host, device_id, p_env)
-        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=[0, 0, 0, 0, 0, 0, 60, 0])
+        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=DIGITAL_COUNTER_PERIODS)
         self.anasnsrs = AnalogSensors(username, password, host, device_id, p_ana)
 
     def switch_on(self):
@@ -241,7 +241,7 @@ class Devices(object):
 
 
 if __name__ == '__main__':
-    devices = Devices(4, USERNAME, PASSWORD, HOST)
+    devices = Devices(N_DEVICE, USERNAME, PASSWORD, HOST)
     devices.switch_on()
 
     while True:

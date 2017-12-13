@@ -81,38 +81,32 @@ class EnvironmentalInformation(threading.Thread):
                 auth={'username': self.username, 'password': self.password})
 
 
-class DigitalSensors(object):
+class DigitalSensors(threading.Thread):
     def __init__(self, username, password, host, device_id, port_ids, period):
-        self.port_ids = port_ids
-        self.period = period
-        self.sensors = {}
-        for i, port_id in enumerate(port_ids):
-            self.sensors[i] = DigitalSensor(username, password, host, device_id, port_id, period)
-
-    def run(self):
-        for sensor in self.sensors.values():
-            sensor.start()
-
-
-class DigitalSensor(threading.Thread):
-    def __init__(self, username, password, host, device_id, port_id, period):
-        super(DigitalSensor, self).__init__()
+        super(DigitalSensors, self).__init__()
         self.username = username
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.port_id = port_id
+        self.port_ids = port_ids
         self.period = period
         self.setDaemon(True)
 
     def run(self):
         time.sleep(5 * np.random.rand())
         while True:
+            self._make_data()
             self._send_data()
             time.sleep(self.period)
 
+    def _make_data(self):
+        tm = time.time()
+        self.data = ['"tm":{0}'.format(tm)]
+        for port_id in self.port_ids:
+            self.data.append('"d{0}":{1}'.format(port_id, np.random.randint(0, 2)))
+
     def _send_data(self):
-        payload = '{{"tm":"{0}","d{1}":{2}}}'.format(time.time(), self.port_id, np.random.randint(0, 2))
+        payload = '{{{0}}}'.format(','.join(self.data))
         print 'Digital sensor: {}\n'.format(payload)
         publish.single(topic='{}/{}'.format(self.password, self.device_id),
                 payload=payload, hostname=self.host,
@@ -166,7 +160,7 @@ class DigitalElements(object):
         self.counters = DigitalCounters(username, password, host, device_id, counter_ids, counter_periods)
 
     def run(self):
-        self.sensors.run()
+        self.sensors.start()
         self.counters.run()
 
 

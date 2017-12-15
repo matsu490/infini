@@ -7,6 +7,7 @@
 #
 # Copyright (C) 2017 Taishi Matsumura
 #
+import os
 import sys
 import time
 import paho.mqtt.publish as publish
@@ -16,8 +17,17 @@ from params import *
 
 
 class Sensor(object):
-    def __init__(self):
-        self.sensor_name = 'Sensor'
+    def __init__(self, name):
+        self.sensor_name = name
+        self._init_logfile()
+
+    def _init_logfile(self):
+        try:
+            os.mkdir('./Logs')
+        except:
+            pass
+        with open('./Logs/{}.txt'.format(self.sensor_name), 'w') as f:
+            f.write('{}\n'.format(time.time()))
 
     def run(self):
         time.sleep(5 * np.random.rand())
@@ -40,10 +50,9 @@ class Sensor(object):
 
 
 class Beacon(Sensor, threading.Thread):
-    def __init__(self, username, password, host, device_id, period, message):
-        super(Beacon, self).__init__()
+    def __init__(self, name, username, password, host, device_id, period, message):
+        super(Beacon, self).__init__(name)
         super(Sensor, self).__init__()
-        self.sensor_name = 'Beacon'
         self.username = username
         self.password = password
         self.host = host
@@ -58,10 +67,9 @@ class Beacon(Sensor, threading.Thread):
 
 
 class EnvironmentalInformation(Sensor, threading.Thread):
-    def __init__(self, username, password, host, device_id, period):
-        super(EnvironmentalInformation, self).__init__()
+    def __init__(self, name, username, password, host, device_id, period):
+        super(EnvironmentalInformation, self).__init__(name)
         super(Sensor, self).__init__()
-        self.sensor_name = 'EnvInfo'
         self.username = username
         self.password = password
         self.host = host
@@ -82,10 +90,9 @@ class EnvironmentalInformation(Sensor, threading.Thread):
 
 
 class DigitalSensors(Sensor, threading.Thread):
-    def __init__(self, username, password, host, device_id, port_ids, period):
-        super(DigitalSensors, self).__init__()
+    def __init__(self, name, username, password, host, device_id, port_ids, period):
+        super(DigitalSensors, self).__init__(name)
         super(Sensor, self).__init__()
-        self.sensor_name = 'Digital sensor'
         self.username = username
         self.password = password
         self.host = host
@@ -107,7 +114,7 @@ class DigitalCounters(object):
         self.periods = periods
         self.counters = {}
         for i, (port_id, period) in enumerate(zip(port_ids, periods)):
-            self.counters[i] = DigitalCounter(username, password, host, device_id, port_id, period)
+            self.counters[i] = DigitalCounter('Digital_counters', username, password, host, device_id, port_id, period)
 
     def run(self):
         for counter in self.counters.values():
@@ -115,10 +122,9 @@ class DigitalCounters(object):
 
 
 class DigitalCounter(Sensor, threading.Thread):
-    def __init__(self, username, password, host, device_id, port_id, period):
-        super(DigitalCounter, self).__init__()
+    def __init__(self, name, username, password, host, device_id, port_id, period):
+        super(DigitalCounter, self).__init__(name)
         super(Sensor, self).__init__()
-        self.sensor_name = 'Digital counter'
         self.username = username
         self.password = password
         self.host = host
@@ -136,7 +142,7 @@ class DigitalElements(object):
         sensor_ids = [i+1 for i, p in enumerate(periods) if p==0]
         counter_ids = list(set(xrange(1, 9)) - set(sensor_ids))
         counter_periods = [p for p in periods if p!=0]
-        self.sensors = DigitalSensors(username, password, host, device_id, sensor_ids, global_period)
+        self.sensors = DigitalSensors('Digital_sensors', username, password, host, device_id, sensor_ids, global_period)
         self.counters = DigitalCounters(username, password, host, device_id, counter_ids, counter_periods)
 
     def run(self):
@@ -145,10 +151,9 @@ class DigitalElements(object):
 
 
 class AnalogSensors(Sensor, threading.Thread):
-    def __init__(self, username, password, host, device_id, period):
-        super(AnalogSensors, self).__init__()
+    def __init__(self, name, username, password, host, device_id, period):
+        super(AnalogSensors, self).__init__(name)
         super(Sensor, self).__init__()
-        self.sensor_name = 'Analog sensor'
         self.username = username
         self.password = password
         self.host = host
@@ -178,10 +183,10 @@ class Device(object):
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.beacon = Beacon(username, password, host, device_id, p_beacon, message=device_id)
-        self.envinfo = EnvironmentalInformation(username, password, host, device_id, p_env)
+        self.beacon = Beacon('Beacon', username, password, host, device_id, p_beacon, message=device_id)
+        self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, p_env)
         self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=DIGITAL_COUNTER_PERIODS)
-        self.anasnsrs = AnalogSensors(username, password, host, device_id, p_ana)
+        self.anasnsrs = AnalogSensors('Analog_sensors', username, password, host, device_id, p_ana)
 
     def switch_on(self):
         self.beacon.start()

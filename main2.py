@@ -140,15 +140,21 @@ class DigitalCounter(threading.Thread):
     def run(self):
         time.sleep(5 * np.random.rand())
         while True:
+            self._make_data()
             self._send_data()
             time.sleep(self.period)
 
+    def _make_data(self):
+        self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(time.time(), self.port_id, np.random.randint(0, 50))
+
     def _send_data(self):
-        payload = '{{"tm":"{0}","d{1}":{2}}}'.format(time.time(), self.port_id, np.random.randint(0, 50))
-        print 'Digital counter: {}\n'.format(payload)
-        publish.single(topic='{}/{}'.format(self.password, self.device_id),
-                payload=payload, hostname=self.host,
-                auth={'username': self.username, 'password': self.password})
+        try:
+            publish.single(topic='{}/{}'.format(self.password, self.device_id),
+                    payload=self.payload, hostname=self.host,
+                    auth={'username': self.username, 'password': self.password})
+            print 'Digital counter: {}\n'.format(self.payload)
+        except:
+            print 'Digital counter: The payload was not send.'
 
 
 class DigitalElements(object):

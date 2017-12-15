@@ -66,19 +66,21 @@ class EnvironmentalInformation(threading.Thread):
             time.sleep(self.period)
 
     def _make_data(self):
-        tm = time.time()
         eiLPrs = np.random.rand() + 900 + 100*np.sin(2*np.pi*self.t)
         seaPrs = np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t)
         eiTemp = np.random.rand() + 20 + 10*np.sin(2*np.pi*self.t)
         eiHumi = np.random.rand() + 50 + 30*np.sin(2*np.pi*self.t)
-        self.data = [tm, eiLPrs, seaPrs, eiTemp, eiHumi]
+        data = [time.time(), eiLPrs, seaPrs, eiTemp, eiHumi]
+        self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
 
     def _send_data(self):
-        payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*self.data)
-        print 'EnvInfo: {}\n'.format(payload)
-        publish.single(topic='{}/{}'.format(self.password, self.device_id),
-                payload=payload, hostname=self.host,
-                auth={'username': self.username, 'password': self.password})
+        try:
+            publish.single(topic='{}/{}'.format(self.password, self.device_id),
+                    payload=self.payload, hostname=self.host,
+                    auth={'username': self.username, 'password': self.password})
+            print 'EnvInfo: {}\n'.format(self.payload)
+        except:
+            print 'EnvInfo: The payload was not send.'
 
 
 class DigitalSensors(threading.Thread):

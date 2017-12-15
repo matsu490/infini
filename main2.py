@@ -34,15 +34,17 @@ class Beacon(threading.Thread):
             time.sleep(self.period)
 
     def _make_data(self):
-        tm = time.time()
-        self.data = [tm, self.message]
+        data = [time.time(), self.message]
+        self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*data)
 
     def _send_data(self):
-        payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*self.data)
-        print 'Beacon: {}\n'.format(payload)
-        publish.single(topic='{}/{}'.format(self.password, self.device_id),
-                payload=payload, hostname=self.host,
-                auth={'username': self.username, 'password': self.password})
+        try:
+            publish.single(topic='{}/{}'.format(self.password, self.device_id),
+                    payload=self.payload, hostname=self.host,
+                    auth={'username': self.username, 'password': self.password})
+            print 'Beacon: {}\n'.format(self.payload)
+        except:
+            print 'Beacon: The payload was not send.'
 
 
 class EnvironmentalInformation(threading.Thread):

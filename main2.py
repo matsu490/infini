@@ -100,17 +100,19 @@ class DigitalSensors(threading.Thread):
             time.sleep(self.period)
 
     def _make_data(self):
-        tm = time.time()
-        self.data = ['"tm":{0}'.format(tm)]
+        data = ['"tm":{0}'.format(time.time())]
         for port_id in self.port_ids:
-            self.data.append('"d{0}":{1}'.format(port_id, np.random.randint(0, 2)))
+            data.append('"d{0}":{1}'.format(port_id, np.random.randint(0, 2)))
+        self.payload = '{{{0}}}'.format(','.join(data))
 
     def _send_data(self):
-        payload = '{{{0}}}'.format(','.join(self.data))
-        print 'Digital sensor: {}\n'.format(payload)
-        publish.single(topic='{}/{}'.format(self.password, self.device_id),
-                payload=payload, hostname=self.host,
-                auth={'username': self.username, 'password': self.password})
+        try:
+            publish.single(topic='{}/{}'.format(self.password, self.device_id),
+                    payload=self.payload, hostname=self.host,
+                    auth={'username': self.username, 'password': self.password})
+            print 'Digital sensor: {}\n'.format(self.payload)
+        except:
+            print 'Digital sensor: The payload was not send.'
 
 
 class DigitalCounters(object):

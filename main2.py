@@ -64,7 +64,6 @@ class EnvironmentalInformation(threading.Thread):
         while True:
             self._make_data()
             self._send_data()
-            self.t += self.dt
             time.sleep(self.period)
 
     def _make_data(self):
@@ -72,6 +71,7 @@ class EnvironmentalInformation(threading.Thread):
         seaPrs = np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t)
         eiTemp = np.random.rand() + 20 + 10*np.sin(2*np.pi*self.t)
         eiHumi = np.random.rand() + 50 + 30*np.sin(2*np.pi*self.t)
+        self.t += self.dt
         data = [time.time(), eiLPrs, seaPrs, eiTemp, eiHumi]
         self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
 
@@ -193,7 +193,6 @@ class AnalogSensors(threading.Thread):
         while True:
             self._make_data()
             self._send_data()
-            self.t += self.dt
             time.sleep(self.global_period)
 
     def _make_data(self):
@@ -205,6 +204,7 @@ class AnalogSensors(threading.Thread):
         a6 = np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t)
         a7 = np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t)
         a8 = np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t)
+        self.t += self.dt
         data = [time.time(), a1, a2, a3, a4, a5, a6, a7, a8]
         self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*data)
 

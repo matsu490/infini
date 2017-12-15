@@ -9,20 +9,10 @@
 #
 import sys
 import time
-import paho.mqtt as mqtt
-import paho.mqtt.client as client
 import paho.mqtt.publish as publish
 import threading
 import numpy as np
 from params import *
-
-
-def on_connect(client, userdata, flags, response_code):
-    print('Connected with result code {}'.format(response_code))
-
-
-def on_publish(client, userdata, mid):
-    print('On publish.')
 
 
 class Beacon(threading.Thread):
@@ -256,36 +246,3 @@ if __name__ == '__main__':
         c = sys.stdin.read(1)
         if c == 'e':
             sys.exit()
-
-    '''
-    payload = 'Hello, mqtt.'
-    print payload
-    for i in xrange(5):
-        try:
-            publish.single(topic='{}/{}'.format(PASSWORD, 'IFT_ML1-YONEZAWA0001'),
-                    payload=payload, qos=2, hostname=HOST,
-                    auth={'username': USERNAME, 'password': PASSWORD})
-            print 'Send {}'.format(i)
-            time.sleep(5)
-        except:
-            print 'Pass {} (waiting for 5 sec)'.format(i)
-            time.sleep(5)
-    '''
-
-    '''
-    client = client.Client(protocol=client.MQTTv311)
-    client.username_pw_set(USERNAME, PASSWORD)
-    # client.on_connect = on_connect
-    # client.on_publish = on_publish
-
-    try:
-        rc = client.connect(HOST)
-        print 'Return code (connect): {}'.format(rc)
-    except:
-        print 'Error!'
-
-    rc = client.publish('{}/{}'.format(PASSWORD, 'IFT_ML1-YONEZAWA0001'), 'Hello, mqtt!')
-    print 'Return code (publish): {}'.format(rc)
-
-    client.disconnect()
-    '''

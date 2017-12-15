@@ -26,8 +26,13 @@ class Sensor(object):
             os.mkdir('./Logs')
         except:
             pass
-        with open('./Logs/{}.txt'.format(self.sensor_name), 'w') as f:
-            f.write('{}\n'.format(time.time()))
+        self.logfile_path = './Logs/{}_{}.txt'.format(self.sensor_name, time.time())
+        with open(self.logfile_path, 'w') as f:
+            f.write('This is a file to log payloads not to be send.\n')
+
+    def _log(self):
+        with open(self.logfile_path, 'a') as f:
+            f.write('{}\n'.format(self.payload))
 
     def run(self):
         time.sleep(5 * np.random.rand())
@@ -46,6 +51,7 @@ class Sensor(object):
                     auth={'username': self.username, 'password': self.password})
             print '{}: {}\n'.format(self.sensor_name, self.payload)
         except:
+            self._log()
             print '{}: The payload was not send.'.format(self.sensor_name)
 
 

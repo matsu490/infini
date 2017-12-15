@@ -194,14 +194,17 @@ class AnalogSensors(threading.Thread):
         a6 = np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t)
         a7 = np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t)
         a8 = np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t)
-        self.data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
+        data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
+        self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*data)
 
     def _send_data(self):
-        payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*self.data)
-        print 'Analog: {}\n'.format(payload)
-        publish.single(topic='{}/{}'.format(self.password, self.device_id),
-                payload=payload, hostname=self.host,
-                auth={'username': self.username, 'password': self.password})
+        try:
+            publish.single(topic='{}/{}'.format(self.password, self.device_id),
+                    payload=self.payload, hostname=self.host,
+                    auth={'username': self.username, 'password': self.password})
+            print 'Analog: {}\n'.format(self.payload)
+        except:
+            print 'Analog: The payload was not send.'
 
 
 class Device(object):

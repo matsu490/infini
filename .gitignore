@@ -101,5 +101,5 @@ ENV/
 .mypy_cache/
 
 # User settings
-/Logs
+/Logs*
 *.exe

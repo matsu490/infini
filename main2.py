@@ -21,7 +21,6 @@ class Sensor(object):
     def __init__(self, name, device_id):
         self.sensor_name = name
         self.device_id = device_id
-        self._init_logfile()
 
     def _init_logfile(self):
         try:
@@ -31,6 +30,7 @@ class Sensor(object):
         self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, time.time())
         with open(self.logfile_path, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(self.header)
 
     def _log(self, is_err):
         with open(self.logfile_path, 'a') as f:
@@ -69,6 +69,8 @@ class Beacon(Sensor, threading.Thread):
         self.device_id = device_id
         self.period = period
         self.message = message
+        self.header = ['time', 'message', 'is_err']
+        self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
@@ -87,6 +89,8 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.period = period
         self.t = 0
         self.dt = 0.1
+        self.header = ['time', 'eiLPrs', 'seaPrs', 'eiTemp', 'eiHumi', 'is_err']
+        self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
@@ -109,6 +113,8 @@ class DigitalSensors(Sensor, threading.Thread):
         self.device_id = device_id
         self.port_ids = port_ids
         self.period = period
+        self.header = ['time'] + ['d{}'.format(port_id) for port_id in port_ids] + ['is_err']
+        self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
@@ -141,6 +147,8 @@ class DigitalCounter(Sensor, threading.Thread):
         self.device_id = device_id
         self.port_id = port_id
         self.period = period
+        self.header = ['time', 'd{}'.format(port_id), 'is_err']
+        self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
@@ -171,6 +179,8 @@ class AnalogSensors(Sensor, threading.Thread):
         self.period = period
         self.t = 0
         self.dt = 0.1
+        self.header = ['time'] + ['a{}'.format(i+1) for i in xrange(8)] + ['is_err']
+        self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):

@@ -9,6 +9,7 @@
 #
 import os
 import sys
+import csv
 import time
 import paho.mqtt.publish as publish
 import threading
@@ -28,11 +29,12 @@ class Sensor(object):
             pass
         self.logfile_path = './Logs/{}_{}.txt'.format(self.sensor_name, time.time())
         with open(self.logfile_path, 'w') as f:
-            f.write('This is a file to log payloads not to be send.\n')
+            writer = csv.writer(f, lineterminator='\n')
 
-    def _log(self):
+    def _log(self, is_err):
         with open(self.logfile_path, 'a') as f:
-            f.write('{}\n'.format(self.payload))
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(['{}'.format(self.payload), is_err])
 
     def run(self):
         time.sleep(5 * np.random.rand())
@@ -49,9 +51,10 @@ class Sensor(object):
             publish.single(topic='{}/{}'.format(self.password, self.device_id),
                     payload=self.payload, hostname=self.host,
                     auth={'username': self.username, 'password': self.password})
+            self._log(0)
             print '{}: {}\n'.format(self.sensor_name, self.payload)
         except:
-            self._log()
+            self._log(1)
             print '{}: The payload was not send.'.format(self.sensor_name)
 
 

@@ -97,10 +97,10 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.setDaemon(True)
 
     def _make_data(self):
-        eiLPrs = np.random.rand() + 900 + 100*np.sin(2*np.pi*self.t)
-        seaPrs = np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t)
-        eiTemp = np.random.rand() + 20 + 10*np.sin(2*np.pi*self.t)
-        eiHumi = np.random.rand() + 50 + 30*np.sin(2*np.pi*self.t)
+        eiLPrs = round(np.random.rand() + 900  + 100*np.sin(2*np.pi*self.t), 2)
+        seaPrs = round(np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t), 2)
+        eiTemp = round(np.random.rand() + 20   +  10*np.sin(2*np.pi*self.t), 2)
+        eiHumi = round(np.random.rand() + 50   +  30*np.sin(2*np.pi*self.t), 2)
         self.t += self.dt
         self.data = [time.time(), eiLPrs, seaPrs, eiTemp, eiHumi]
         self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*self.data)
@@ -189,14 +189,14 @@ class AnalogSensors(Sensor, threading.Thread):
         self.setDaemon(True)
 
     def _make_data(self):
-        a1 = np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t)
-        a2 = np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t)
-        a3 = np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t)
-        a4 = np.random.rand() + 40 + 40*np.sin(2*np.pi*self.t)
-        a5 = np.random.rand() + 10 + 10*np.cos(2*np.pi*self.t)
-        a6 = np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t)
-        a7 = np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t)
-        a8 = np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t)
+        a1 = round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2)
+        a2 = round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2)
+        a3 = round(np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t), 2)
+        a4 = round(np.random.rand() + 40 + 40*np.sin(2*np.pi*self.t), 2)
+        a5 = round(np.random.rand() + 10 + 10*np.cos(2*np.pi*self.t), 2)
+        a6 = round(np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t), 2)
+        a7 = round(np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t), 2)
+        a8 = round(np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t), 2)
         self.t += self.dt
         self.data = [time.time(), a1, a2, a3, a4, a5, a6, a7, a8]
         self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*self.data)

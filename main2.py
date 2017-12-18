@@ -30,12 +30,12 @@ class Sensor(object):
         self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, time.time())
         with open(self.logfile_path, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
-            writer.writerow(self.header)
+            writer.writerow(self.header + ['is_err'])
 
     def _log(self, is_err):
         with open(self.logfile_path, 'a') as f:
             writer = csv.writer(f, lineterminator='\n')
-            writer.writerow(['{}'.format(self.payload), is_err])
+            writer.writerow(self.data + [is_err])
 
     def run(self):
         time.sleep(5 * np.random.rand())
@@ -69,13 +69,13 @@ class Beacon(Sensor, threading.Thread):
         self.device_id = device_id
         self.period = period
         self.message = message
-        self.header = ['time', 'message', 'is_err']
+        self.header = ['time', 'message']
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
-        data = [time.time(), self.message]
-        self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*data)
+        self.data = [time.time(), self.message]
+        self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*self.data)
 
 
 class EnvironmentalInformation(Sensor, threading.Thread):
@@ -89,7 +89,7 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.period = period
         self.t = 0
         self.dt = 0.1
-        self.header = ['time', 'eiLPrs', 'seaPrs', 'eiTemp', 'eiHumi', 'is_err']
+        self.header = ['time', 'eiLPrs', 'seaPrs', 'eiTemp', 'eiHumi']
         self._init_logfile()
         self.setDaemon(True)
 
@@ -99,8 +99,8 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         eiTemp = np.random.rand() + 20 + 10*np.sin(2*np.pi*self.t)
         eiHumi = np.random.rand() + 50 + 30*np.sin(2*np.pi*self.t)
         self.t += self.dt
-        data = [time.time(), eiLPrs, seaPrs, eiTemp, eiHumi]
-        self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*data)
+        self.data = [time.time(), eiLPrs, seaPrs, eiTemp, eiHumi]
+        self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*self.data)
 
 
 class DigitalSensors(Sensor, threading.Thread):
@@ -113,15 +113,16 @@ class DigitalSensors(Sensor, threading.Thread):
         self.device_id = device_id
         self.port_ids = port_ids
         self.period = period
-        self.header = ['time'] + ['d{}'.format(port_id) for port_id in port_ids] + ['is_err']
+        self.header = ['time'] + ['d{}'.format(port_id) for port_id in port_ids]
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
-        data = ['"tm":{0}'.format(time.time())]
-        for port_id in self.port_ids:
-            data.append('"d{0}":{1}'.format(port_id, np.random.randint(0, 2)))
-        self.payload = '{{{0}}}'.format(','.join(data))
+        self.data = [time.time()] + [np.random.randint(0, 2) for _ in self.port_ids]
+        self.payload_ = ['"tm":{0}'.format(self.data[0])]
+        for port_id, randint in zip(self.port_ids, self.data[1:]):
+            self.payload_.append('"d{0}":{1}'.format(port_id, randint))
+        self.payload = '{{{0}}}'.format(','.join(self.payload_))
 
 
 class DigitalCounters(object):
@@ -147,12 +148,13 @@ class DigitalCounter(Sensor, threading.Thread):
         self.device_id = device_id
         self.port_id = port_id
         self.period = period
-        self.header = ['time', 'd{}'.format(port_id), 'is_err']
+        self.header = ['time', 'd{}'.format(port_id)]
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
-        self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(time.time(), self.port_id, np.random.randint(0, 50))
+        self.data = [time.time(), np.random.randint(0, 50)]
+        self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(self.data[0], self.port_id, self.data[1])
 
 
 class DigitalElements(object):
@@ -179,7 +181,7 @@ class AnalogSensors(Sensor, threading.Thread):
         self.period = period
         self.t = 0
         self.dt = 0.1
-        self.header = ['time'] + ['a{}'.format(i+1) for i in xrange(8)] + ['is_err']
+        self.header = ['time'] + ['a{}'.format(i+1) for i in xrange(8)]
         self._init_logfile()
         self.setDaemon(True)
 
@@ -193,8 +195,8 @@ class AnalogSensors(Sensor, threading.Thread):
         a7 = np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t)
         a8 = np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t)
         self.t += self.dt
-        data = [time.time(), a1, a2, a3, a4, a5, a6, a7, a8]
-        self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*data)
+        self.data = [time.time(), a1, a2, a3, a4, a5, a6, a7, a8]
+        self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*self.data)
 
 
 class Device(object):

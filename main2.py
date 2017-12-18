@@ -28,7 +28,9 @@ class Sensor(object):
             os.mkdir('./Logs/{}'.format(self.device_id))
         except:
             pass
-        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, time.time())
+        d = datetime.datetime.fromtimestamp(time.time())
+        dtime = '{0}{1}{2}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
+        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, dtime)
         with open(self.logfile_path, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
             writer.writerow(self.header + ['is_err'])

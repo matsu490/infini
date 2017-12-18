@@ -11,6 +11,7 @@ import os
 import sys
 import csv
 import time
+import datetime
 import paho.mqtt.publish as publish
 import threading
 import numpy as np
@@ -35,7 +36,9 @@ class Sensor(object):
     def _log(self, is_err):
         with open(self.logfile_path, 'a') as f:
             writer = csv.writer(f, lineterminator='\n')
-            writer.writerow(self.data + [is_err])
+            d = datetime.datetime.fromtimestamp(self.data[0])
+            dtime = '{0}-{1}-{2} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
+            writer.writerow([dtime] + self.data[1:] + [is_err])
 
     def run(self):
         time.sleep(5 * np.random.rand())

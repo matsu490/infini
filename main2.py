@@ -18,16 +18,17 @@ from params import *
 
 
 class Sensor(object):
-    def __init__(self, name):
+    def __init__(self, name, device_id):
         self.sensor_name = name
+        self.device_id = device_id
         self._init_logfile()
 
     def _init_logfile(self):
         try:
-            os.mkdir('./Logs')
+            os.mkdir('./Logs/{}'.format(self.device_id))
         except:
             pass
-        self.logfile_path = './Logs/{}_{}.txt'.format(self.sensor_name, time.time())
+        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, time.time())
         with open(self.logfile_path, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
 
@@ -60,7 +61,7 @@ class Sensor(object):
 
 class Beacon(Sensor, threading.Thread):
     def __init__(self, name, username, password, host, device_id, period, message):
-        super(Beacon, self).__init__(name)
+        super(Beacon, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
         self.password = password
@@ -77,7 +78,7 @@ class Beacon(Sensor, threading.Thread):
 
 class EnvironmentalInformation(Sensor, threading.Thread):
     def __init__(self, name, username, password, host, device_id, period):
-        super(EnvironmentalInformation, self).__init__(name)
+        super(EnvironmentalInformation, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
         self.password = password
@@ -100,7 +101,7 @@ class EnvironmentalInformation(Sensor, threading.Thread):
 
 class DigitalSensors(Sensor, threading.Thread):
     def __init__(self, name, username, password, host, device_id, port_ids, period):
-        super(DigitalSensors, self).__init__(name)
+        super(DigitalSensors, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
         self.password = password
@@ -132,7 +133,7 @@ class DigitalCounters(object):
 
 class DigitalCounter(Sensor, threading.Thread):
     def __init__(self, name, username, password, host, device_id, port_id, period):
-        super(DigitalCounter, self).__init__(name)
+        super(DigitalCounter, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
         self.password = password
@@ -161,7 +162,7 @@ class DigitalElements(object):
 
 class AnalogSensors(Sensor, threading.Thread):
     def __init__(self, name, username, password, host, device_id, period):
-        super(AnalogSensors, self).__init__(name)
+        super(AnalogSensors, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
         self.password = password

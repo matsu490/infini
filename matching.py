@@ -7,20 +7,27 @@
 #
 # Copyright (C) 2017 Taishi Matsumura
 #
+import numpy as np
 import pandas as pd
 
 device_id = 1
 sensor_name = 'Analog_sensors'
 at = '20171220173147'
 
+# load the data stored by python as local_data
 file_path = './Logs/IFT_ML1-YONEZAWA{:04d}/{}_{}.csv'.format(device_id, sensor_name, at)
-local_data = {sensor_name: pd.read_csv(file_path).set_index('time')}
+tmp_data = pd.read_csv(file_path).set_index('time')
+tmp_data = tmp_data.loc['2017-12-20 17:30:00':'2017-12-20 17:34:50', 'a1':'a8']
+local_data = {sensor_name: tmp_data}
+
+# load the data downloaded from the server as server_data
 headers = ['time'] + ['sd{}'.format(i+1) for i in xrange(8)] + ['sa{}'.format(i+1) for i in xrange(8)] + ['seiTemp', 'seiHumi', 'seiLPrs', 'sseaPrs', 'sbeacon', 'smessage', 'dummy']
 server_data_raw = pd.read_csv('./receivedata.csv', header=0, names=headers).set_index('time')
-
 # server_data = {sensor_name: server_data_raw.query('index in @local_data[@sensor_name].index').loc[:, 'sa1':'sa8']}
 server_data = {sensor_name: server_data_raw.loc[:, 'sa1':'sa8'].dropna(how='all', axis=0)}
-df = pd.concat([server_data[sensor_name], local_data[sensor_name]], axis=1)
+
+df = pd.concat([local_data[sensor_name], server_data[sensor_name]], axis=1)
+print np.logical_and(local_data[sensor_name], server_data[sensor_name])
 
 
 '''

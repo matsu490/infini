@@ -38,8 +38,8 @@ for sensor_name in sensor_names:
         server_data = {sensor_name: server_data_raw.loc[begin:end, 'a1_s':'a8_s'].dropna(how='all', axis=0)}
 
     df = pd.concat([local_data[sensor_name], server_data[sensor_name]], axis=1)
-    table = np.logical_and(local_data[sensor_name], server_data[sensor_name])
-    result = bool(np.all(table))
+    judge_table = local_data[sensor_name] == server_data[sensor_name]
+    result = bool(np.all(judge_table))
 
     okng = 'OK'*result + 'NG'*(not result)
     print '{}: {}'.format(sensor_name, okng)

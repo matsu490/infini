@@ -28,4 +28,9 @@ server_data_raw = pd.read_csv('./receivedata.csv', header=0, names=headers).set_
 server_data = {sensor_name: server_data_raw.loc[begin:end, 'a1_s':'a8_s'].dropna(how='all', axis=0)}
 
 df = pd.concat([local_data[sensor_name], server_data[sensor_name]], axis=1)
-print np.logical_and(local_data[sensor_name], server_data[sensor_name])
+table = np.logical_and(local_data[sensor_name], server_data[sensor_name])
+result = bool(np.all(table))
+
+okng = 'OK'*result + 'NG'*(not result)
+print '------ Summary ------'
+print 'Analog sensors: {}'.format(okng)

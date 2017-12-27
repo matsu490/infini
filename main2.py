@@ -95,19 +95,19 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.period = period
         self.t = 0
         self.dt = 0.1
-        self.header = ['time', 'eiLPrs', 'seaPrs', 'eiTemp', 'eiHumi']
+        self.header = ['time', 'eiTemp', 'eiHumi', 'eiLPrs', 'seaPrs']
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
         tm = round(time.time(), 2)
-        eiLPrs = round(np.random.rand() + 900  + 100*np.sin(2*np.pi*self.t), 2)
-        seaPrs = round(np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t), 2)
         eiTemp = round(np.random.rand() + 20   +  10*np.sin(2*np.pi*self.t), 2)
         eiHumi = round(np.random.rand() + 50   +  30*np.sin(2*np.pi*self.t), 2)
+        eiLPrs = round(np.random.rand() + 900  + 100*np.sin(2*np.pi*self.t), 2)
+        seaPrs = round(np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t), 2)
         self.t += self.dt
-        self.data = [tm, eiLPrs, seaPrs, eiTemp, eiHumi]
-        self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*self.data)
+        self.data = [tm, eiTemp, eiHumi, eiLPrs, seaPrs]
+        self.payload = '{{"tm":"{0}","eiTemp":{1},"eiHumi":{2},"eiLPrs":{3},"seaPrs":{4}}}'.format(*self.data)
 
 
 class DigitalSensors(Sensor, threading.Thread):

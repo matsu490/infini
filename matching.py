@@ -7,7 +7,6 @@
 #
 # Copyright (C) 2017 Taishi Matsumura
 #
-import numpy as np
 import pandas as pd
 
 device_id = 1
@@ -35,7 +34,7 @@ for sensor_name in sensor_names:
 
     df = pd.concat([local_data[sensor_name], server_data[sensor_name]], axis=1)
     judge_table = local_data[sensor_name] == server_data[sensor_name]
-    result = bool(np.all(judge_table))
+    result = all(judge_table)
 
     okng = 'OK'*result + 'NG'*(not result)
     print '{}: {}'.format(sensor_name, okng)

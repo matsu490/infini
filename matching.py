@@ -31,9 +31,11 @@ for sensor_name in sensor_names:
     elif sensor_name == 'Analog_sensors':
         tmp_data = tmp_data.loc[begin:end, 'a1':'a8']
     elif sensor_name == 'Digital_sensors':
-        pass
+        tmp_data = tmp_data.loc[begin:end, :]
+        tmp_data = tmp_data.iloc[:, 0:-1]
     elif sensor_name == 'Digital_counters':
-        pass
+        tmp_data = tmp_data.loc[begin:end, :]
+        tmp_data = tmp_data.iloc[:, 0:-1]
     elif sensor_name == 'Beacon':
         tmp_data = tmp_data.loc[begin:end, 'beacon']
     local_data = {sensor_name: tmp_data}
@@ -44,9 +46,9 @@ for sensor_name in sensor_names:
     elif sensor_name == 'Analog_sensors':
         server_data = {sensor_name: server_data_raw.loc[begin:end, 'a1':'a8'].dropna(how='all', axis=0)}
     elif sensor_name == 'Digital_sensors':
-        pass
+        server_data = {sensor_name: server_data_raw.loc[begin:end, tmp_data.columns].dropna(how='all', axis=0)}
     elif sensor_name == 'Digital_counters':
-        pass
+        server_data = {sensor_name: server_data_raw.loc[begin:end, tmp_data.columns].dropna(how='all', axis=0)}
     elif sensor_name == 'Beacon':
         server_data = {sensor_name: server_data_raw.loc[begin:end, 'beacon'].dropna(how='all', axis=0)}
 

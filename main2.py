@@ -65,7 +65,7 @@ class Sensor(object):
 
 
 class Beacon(Sensor, threading.Thread):
-    def __init__(self, name, username, password, host, device_id, period, message):
+    def __init__(self, name, username, password, host, device_id, period, beacon):
         super(Beacon, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
@@ -73,13 +73,14 @@ class Beacon(Sensor, threading.Thread):
         self.host = host
         self.device_id = device_id
         self.period = period
-        self.message = message
-        self.header = ['time', 'message']
+        self.beacon = beacon
+        self.header = ['time', 'beacon']
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
-        self.data = [time.time(), self.message]
+        tm = round(time.time(), 2)
+        self.data = [tm, self.beacon]
         self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*self.data)
 
 
@@ -94,18 +95,19 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.period = period
         self.t = 0
         self.dt = 0.1
-        self.header = ['time', 'eiLPrs', 'seaPrs', 'eiTemp', 'eiHumi']
+        self.header = ['time', 'eiTemp', 'eiHumi', 'eiLPrs', 'seaPrs']
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
-        eiLPrs = round(np.random.rand() + 900  + 100*np.sin(2*np.pi*self.t), 2)
-        seaPrs = round(np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t), 2)
+        tm = round(time.time(), 2)
         eiTemp = round(np.random.rand() + 20   +  10*np.sin(2*np.pi*self.t), 2)
         eiHumi = round(np.random.rand() + 50   +  30*np.sin(2*np.pi*self.t), 2)
+        eiLPrs = round(np.random.rand() + 900  + 100*np.sin(2*np.pi*self.t), 2)
+        seaPrs = round(np.random.rand() + 1000 + 100*np.sin(2*np.pi*self.t), 2)
         self.t += self.dt
-        self.data = [time.time(), eiLPrs, seaPrs, eiTemp, eiHumi]
-        self.payload = '{{"tm":"{0}","eiLPrs":{1},"seaPrs":{2},"eiTemp":{3},"eiHumi":{4}}}'.format(*self.data)
+        self.data = [tm, eiTemp, eiHumi, eiLPrs, seaPrs]
+        self.payload = '{{"tm":"{0}","eiTemp":{1},"eiHumi":{2},"eiLPrs":{3},"seaPrs":{4}}}'.format(*self.data)
 
 
 class DigitalSensors(Sensor, threading.Thread):
@@ -123,8 +125,9 @@ class DigitalSensors(Sensor, threading.Thread):
         self.setDaemon(True)
 
     def _make_data(self):
-        self.data = [time.time()] + [np.random.randint(0, 2) for _ in self.port_ids]
-        self.payload_ = ['"tm":{0}'.format(self.data[0])]
+        tm = round(time.time(), 2)
+        self.data = [tm] + [np.random.randint(0, 2) for _ in self.port_ids]
+        self.payload_ = ['"tm":"{0}"'.format(self.data[0])]
         for port_id, randint in zip(self.port_ids, self.data[1:]):
             self.payload_.append('"d{0}":{1}'.format(port_id, randint))
         self.payload = '{{{0}}}'.format(','.join(self.payload_))
@@ -158,7 +161,8 @@ class DigitalCounter(Sensor, threading.Thread):
         self.setDaemon(True)
 
     def _make_data(self):
-        self.data = [time.time(), np.random.randint(0, 50)]
+        tm = round(time.time(), 2)
+        self.data = [tm, np.random.randint(0, 50)]
         self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(self.data[0], self.port_id, self.data[1])
 
 
@@ -191,6 +195,7 @@ class AnalogSensors(Sensor, threading.Thread):
         self.setDaemon(True)
 
     def _make_data(self):
+        tm = round(time.time(), 2)
         a1 = round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2)
         a2 = round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2)
         a3 = round(np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t), 2)
@@ -200,7 +205,7 @@ class AnalogSensors(Sensor, threading.Thread):
         a7 = round(np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t), 2)
         a8 = round(np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t), 2)
         self.t += self.dt
-        self.data = [time.time(), a1, a2, a3, a4, a5, a6, a7, a8]
+        self.data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
         self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*self.data)
 
 
@@ -210,7 +215,7 @@ class Device(object):
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.beacon = Beacon('Beacon', username, password, host, device_id, p_beacon, message=device_id)
+        self.beacon = Beacon('Beacon', username, password, host, device_id, p_beacon, beacon=device_id)
         self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, p_env)
         self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=DIGITAL_COUNTER_PERIODS)
         self.anasnsrs = AnalogSensors('Analog_sensors', username, password, host, device_id, p_ana)

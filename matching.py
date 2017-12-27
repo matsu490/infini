@@ -35,6 +35,7 @@ for sensor_name in sensor_names:
     df = pd.concat([local_data[sensor_name], server_data[sensor_name]], axis=1)
     judge_table = local_data[sensor_name] == server_data[sensor_name]
     result = all(judge_table)
+    print judge_table
 
     okng = 'OK'*result + 'NG'*(not result)
     print '{}: {}'.format(sensor_name, okng)

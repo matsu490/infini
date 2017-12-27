@@ -101,5 +101,6 @@ ENV/
 .mypy_cache/
 
 # User settings
-params.py
+/Logs*
 *.exe
+receivedata.csv

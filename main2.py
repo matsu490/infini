@@ -29,7 +29,7 @@ class Sensor(object):
         except:
             pass
         d = datetime.datetime.fromtimestamp(time.time())
-        dtime = '{0}{1}{2}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
+        dtime = '{0}{1:02d}{2:02d}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
         self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, dtime)
         with open(self.logfile_path, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
@@ -39,7 +39,7 @@ class Sensor(object):
         with open(self.logfile_path, 'a') as f:
             writer = csv.writer(f, lineterminator='\n')
             d = datetime.datetime.fromtimestamp(self.data[0])
-            dtime = '{0}-{1}-{2} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
+            dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
             writer.writerow([dtime] + self.data[1:] + [is_err])
 
     def run(self):

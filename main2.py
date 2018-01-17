@@ -215,7 +215,7 @@ class AnalogSensors(Sensor, threading.Thread):
 
 
 class Device(object):
-    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD, p_ana=ANALOG_SENSOR_PERIOD):
+    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD):
         self.username = username
         self.password = password
         self.host = host
@@ -223,13 +223,19 @@ class Device(object):
         self.beacon = Beacon('Beacon', username, password, host, device_id, p_beacon, beacon=device_id)
         self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, p_env)
         self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=DIGITAL_COUNTER_PERIODS)
-        self.anasnsrs = AnalogSensors('Analog_sensors', username, password, host, device_id, p_ana)
+        self.anagroup1 = AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1)
+        self.anagroup2 = AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2)
+        self.anagroup3 = AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3)
+        self.anagroup4 = AnalogSensors('Analog_group4', username, password, host, device_id, ANALOG_GROUP4_PERIOD, ANALOG_GROUP4)
 
     def switch_on(self):
         self.beacon.start()
         self.envinfo.start()
         self.digital_elems.run()
-        self.anasnsrs.start()
+        self.anagroup1.start()
+        self.anagroup2.start()
+        self.anagroup3.start()
+        self.anagroup4.start()
 
 
 class Devices(object):

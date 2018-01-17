@@ -4,6 +4,7 @@
 **Implemented enhancements:**
 - typo (Envinfo -> EnvInfo)
 - 内部環境情報のカラムラベルの順序を変更した（チケット #2458 参照）
+- ANALOG_SENSOR_PERIOD を一時的に追加した（アナログセンサーグループの実装とともに消す予定）
 
 ## [v0.1.1](https://github.com/matsu490/infini/tree/v0.1.1) (2018-01-16)
 **Implemented enhancements:**

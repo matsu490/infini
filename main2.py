@@ -180,7 +180,7 @@ class DigitalElements(object):
 
 
 class AnalogSensors(Sensor, threading.Thread):
-    def __init__(self, name, username, password, host, device_id, period):
+    def __init__(self, name, username, password, host, device_id, period, check_box):
         super(AnalogSensors, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
@@ -188,25 +188,30 @@ class AnalogSensors(Sensor, threading.Thread):
         self.host = host
         self.device_id = device_id
         self.period = period
+        self.check_box = check_box
+        self.port_ids = [i+1 for i in xrange(len(check_box)) if check_box[i]==1]
+        self.header = ['time'] + ['a{}'.format(port_id) for port_id in self.port_ids]
         self.t = 0
         self.dt = 0.1
-        self.header = ['time'] + ['a{}'.format(i+1) for i in xrange(8)]
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
         tm = round(time.time(), 2)
-        a1 = round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2)
-        a2 = round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2)
-        a3 = round(np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t), 2)
-        a4 = round(np.random.rand() + 40 + 40*np.sin(2*np.pi*self.t), 2)
-        a5 = round(np.random.rand() + 10 + 10*np.cos(2*np.pi*self.t), 2)
-        a6 = round(np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t), 2)
-        a7 = round(np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t), 2)
-        a8 = round(np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t), 2)
+        waves = [round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 40 + 40*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 10 + 10*np.cos(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t), 2)]
+        self.data = [tm] + [waves[i-1] for i in self.port_ids]
+        self.payload_ = ['"tm":"{0}"'.format(self.data[0])]
+        for port_id, wave in zip(self.port_ids, self.data[1:]):
+            self.payload_.append('"a{0}":{1}'.format(port_id, wave))
+        self.payload = '{{{0}}}'.format(','.join(self.payload_))
         self.t += self.dt
-        self.data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
-        self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*self.data)
 
 
 class Device(object):

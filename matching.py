@@ -10,7 +10,7 @@
 import pandas as pd
 
 device_id = 1
-sensor_names = ['Envinfo', 'Analog_sensors', 'Digital_sensors', 'Digital_counters', 'Beacon']
+sensor_names = ['EnvInfo', 'Analog_sensors', 'Digital_sensors', 'Digital_counters', 'Beacon']
 time_stamp = '20171227102729'
 begin = '2017-12-27 10:28:00'
 end = '2017-12-27 10:47:00'

@@ -210,7 +210,7 @@ class AnalogSensors(Sensor, threading.Thread):
 
 
 class Device(object):
-    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD, p_ana=15):
+    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD, p_ana=ANALOG_SENSOR_PERIOD):
         self.username = username
         self.password = password
         self.host = host

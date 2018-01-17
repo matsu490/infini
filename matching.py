@@ -10,14 +10,14 @@
 import pandas as pd
 
 device_id = 1
-sensor_names = ['Envinfo', 'Analog_sensors', 'Digital_sensors', 'Digital_counters', 'Beacon']
+sensor_names = ['EnvInfo', 'Analog_sensors', 'Digital_sensors', 'Digital_counters', 'Beacon']
 time_stamp = '20171227102729'
 begin = '2017-12-27 10:28:00'
 end = '2017-12-27 10:47:00'
 
 
 # load the data downloaded from the server as server_data
-headers = ['time'] + ['d{}'.format(i+1) for i in xrange(8)] + ['a{}'.format(i+1) for i in xrange(8)] + ['eiHumi', 'eiLPrs', 'eiTemp', 'seaPrs', 'beacon', 'message', 'dummy']
+headers = ['time'] + ['d{}'.format(i+1) for i in xrange(8)] + ['a{}'.format(i+1) for i in xrange(8)] + ['eiTemp', 'eiHumi', 'eiLPrs', 'seaPrs', 'beacon', 'message']
 server_data_raw = pd.read_csv('./receivedata.csv', header=0, names=headers).set_index('time')
 
 for sensor_name in sensor_names:

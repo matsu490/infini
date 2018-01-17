@@ -180,7 +180,7 @@ class DigitalElements(object):
 
 
 class AnalogSensors(Sensor, threading.Thread):
-    def __init__(self, name, username, password, host, device_id, period):
+    def __init__(self, name, username, password, host, device_id, period, check_box):
         super(AnalogSensors, self).__init__(name, device_id)
         super(Sensor, self).__init__()
         self.username = username
@@ -188,29 +188,34 @@ class AnalogSensors(Sensor, threading.Thread):
         self.host = host
         self.device_id = device_id
         self.period = period
+        self.check_box = check_box
+        self.port_ids = [i+1 for i in xrange(len(check_box)) if check_box[i]==1]
+        self.header = ['time'] + ['a{}'.format(port_id) for port_id in self.port_ids]
         self.t = 0
         self.dt = 0.1
-        self.header = ['time'] + ['a{}'.format(i+1) for i in xrange(8)]
         self._init_logfile()
         self.setDaemon(True)
 
     def _make_data(self):
         tm = round(time.time(), 2)
-        a1 = round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2)
-        a2 = round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2)
-        a3 = round(np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t), 2)
-        a4 = round(np.random.rand() + 40 + 40*np.sin(2*np.pi*self.t), 2)
-        a5 = round(np.random.rand() + 10 + 10*np.cos(2*np.pi*self.t), 2)
-        a6 = round(np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t), 2)
-        a7 = round(np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t), 2)
-        a8 = round(np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t), 2)
+        waves = [round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 30 + 30*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 40 + 40*np.sin(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 10 + 10*np.cos(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 20 + 20*np.cos(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 30 + 30*np.cos(2*np.pi*self.t), 2),
+                 round(np.random.rand() + 40 + 40*np.cos(2*np.pi*self.t), 2)]
+        self.data = [tm] + [waves[i-1] for i in self.port_ids]
+        self.payload_ = ['"tm":"{0}"'.format(self.data[0])]
+        for port_id, wave in zip(self.port_ids, self.data[1:]):
+            self.payload_.append('"a{0}":{1}'.format(port_id, wave))
+        self.payload = '{{{0}}}'.format(','.join(self.payload_))
         self.t += self.dt
-        self.data = [tm, a1, a2, a3, a4, a5, a6, a7, a8]
-        self.payload = '{{"tm":"{0}","a1":{1},"a2":{2},"a3":{3},"a4":{4},"a5":{5},"a6":{6},"a7":{7},"a8":{8}}}'.format(*self.data)
 
 
 class Device(object):
-    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD, p_ana=ANALOG_SENSOR_PERIOD):
+    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD):
         self.username = username
         self.password = password
         self.host = host
@@ -218,13 +223,19 @@ class Device(object):
         self.beacon = Beacon('Beacon', username, password, host, device_id, p_beacon, beacon=device_id)
         self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, p_env)
         self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=DIGITAL_COUNTER_PERIODS)
-        self.anasnsrs = AnalogSensors('Analog_sensors', username, password, host, device_id, p_ana)
+        self.anagroup1 = AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1)
+        self.anagroup2 = AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2)
+        self.anagroup3 = AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3)
+        self.anagroup4 = AnalogSensors('Analog_group4', username, password, host, device_id, ANALOG_GROUP4_PERIOD, ANALOG_GROUP4)
 
     def switch_on(self):
         self.beacon.start()
         self.envinfo.start()
         self.digital_elems.run()
-        self.anasnsrs.start()
+        self.anagroup1.start()
+        self.anagroup2.start()
+        self.anagroup3.start()
+        self.anagroup4.start()
 
 
 class Devices(object):

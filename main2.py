@@ -48,7 +48,7 @@ class Sensor(object):
             self._write_log(self.logfile_path, line)
         except IOError:
             print 'The log was not written because the logfile is open by, maybe, MS Excel.'
-            self.temp_logfile_path = self.logfile_path[:-3] + 'tmp'
+            self.temp_logfile_path = os.path.splitext(self.logfile_path)[0] + '.tmp'
             self._make_logfile(self.temp_logfile_path, self.header + ['is_err'])
             self._write_log(self.temp_logfile_path, line)
 

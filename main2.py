@@ -34,7 +34,7 @@ class Sensor(object):
         self.temp_logfile_path = self.logfile_path[:-3] + 'tmp'
         self._make_logfile(self.logfile_path, self.header + ['is_err'])
 
-    def _log(self, is_err):
+    def _logging(self, is_err):
         d = datetime.datetime.fromtimestamp(self.data[0])
         dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
         data = [dtime] + self.data[1:] + [is_err]
@@ -71,10 +71,10 @@ class Sensor(object):
             publish.single(topic='{}/{}'.format(self.password, self.device_id),
                     payload=self.payload, hostname=self.host,
                     auth={'username': self.username, 'password': self.password})
-            self._log(0)
+            self._logging(0)
             print '{}: {}\n'.format(self.sensor_name, self.payload)
         except:
-            self._log(1)
+            self._logging(1)
             print '{}: The payload was not send.'.format(self.sensor_name)
 
 

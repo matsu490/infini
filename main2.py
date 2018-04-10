@@ -66,14 +66,14 @@ class Sensor(object):
     def run(self):
         time.sleep(5 * np.random.rand())
         while True:
-            self._make_data()
-            self._send_data()
+            self._make_sensor_data()
+            self._send_sensor_data()
             time.sleep(self.period)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         pass
 
-    def _send_data(self):
+    def _send_sensor_data(self):
         try:
             publish.single(topic='{}/{}'.format(self.password, self.device_id),
                     payload=self.payload, hostname=self.host,
@@ -99,7 +99,7 @@ class Beacon(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         self.data = [tm, self.beacon]
         self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*self.data)
@@ -120,7 +120,7 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         eiTemp = round(np.random.rand() + 20   +  10*np.sin(2*np.pi*self.t), 2)
         eiHumi = round(np.random.rand() + 50   +  30*np.sin(2*np.pi*self.t), 2)
@@ -145,7 +145,7 @@ class DigitalSensors(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         self.data = [tm] + [np.random.randint(0, 2) for _ in self.port_ids]
         self.payload_ = ['"tm":"{0}"'.format(self.data[0])]
@@ -181,7 +181,7 @@ class DigitalCounter(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         self.data = [tm, np.random.randint(0, 50)]
         self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(self.data[0], self.port_id, self.data[1])
@@ -215,7 +215,7 @@ class AnalogSensors(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         a1 = round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2)
         a2 = round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2)

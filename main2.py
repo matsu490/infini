@@ -22,6 +22,8 @@ class Sensor(object):
     def __init__(self, name, device_id):
         self.sensor_name = name
         self.device_id = device_id
+        self.header = []
+        self.logfile_path = ''
 
     def _init_logfile(self):
         try:

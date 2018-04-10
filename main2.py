@@ -26,15 +26,19 @@ class Sensor(object):
         self.logfile_path = ''
 
     def _init_logfile(self):
+        self._make_logdir()
+        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, self._timestamp())
+        self._make_logfile(self.logfile_path, self.header + ['is_err'])
+
+    def _timestamp(self):
+        d = datetime.datetime.fromtimestamp(time.time())
+        return '{0}{1:02d}{2:02d}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
+
+    def _make_logdir(self):
         try:
             os.mkdir('./Logs/{}'.format(self.device_id))
         except:
             pass
-        d = datetime.datetime.fromtimestamp(time.time())
-        dtime = '{0}{1:02d}{2:02d}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
-        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, dtime)
-        self.temp_logfile_path = self.logfile_path[:-3] + 'tmp'
-        self._make_logfile(self.logfile_path, self.header + ['is_err'])
 
     def _logging(self, is_err):
         d = datetime.datetime.fromtimestamp(self.data[0])

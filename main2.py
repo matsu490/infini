@@ -43,24 +43,25 @@ class Sensor(object):
     def _logging(self, is_err):
         d = datetime.datetime.fromtimestamp(self.data[0])
         dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
-        data = [dtime] + self.data[1:] + [is_err]
+        line = [dtime] + self.data[1:] + [is_err]
         try:
-            self._write_log(self.logfile_path, data)
+            self._write_log(self.logfile_path, line)
         except IOError:
             print 'The log was not written because the logfile is open by, maybe, MS Excel.'
+            self.temp_logfile_path = self.logfile_path[:-3] + 'tmp'
             self._make_logfile(self.temp_logfile_path, self.header + ['is_err'])
-            self._write_log(self.temp_logfile_path, data)
+            self._write_log(self.temp_logfile_path, line)
 
-    def _make_logfile(self, file_path, data):
+    def _make_logfile(self, file_path, line):
         if not os.path.exists(file_path):
             with open(file_path, 'w') as f:
                 writer = csv.writer(f, lineterminator='\n')
-                writer.writerow(data)
+                writer.writerow(line)
 
-    def _write_log(self, file_path, data):
+    def _write_log(self, file_path, line):
         with open(file_path, 'a') as f:
             writer = csv.writer(f, lineterminator='\n')
-            writer.writerow(data)
+            writer.writerow(line)
 
     def run(self):
         time.sleep(5 * np.random.rand())

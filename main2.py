@@ -36,11 +36,15 @@ class Sensor(object):
             writer.writerow(self.header + ['is_err'])
 
     def _log(self, is_err):
-        with open(self.logfile_path, 'a') as f:
-            writer = csv.writer(f, lineterminator='\n')
-            d = datetime.datetime.fromtimestamp(self.data[0])
-            dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
-            writer.writerow([dtime] + self.data[1:] + [is_err])
+        try:
+            with open(self.logfile_path, 'a') as f:
+                writer = csv.writer(f, lineterminator='\n')
+                d = datetime.datetime.fromtimestamp(self.data[0])
+                dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
+                writer.writerow([dtime] + self.data[1:] + [is_err])
+        except IOError:
+            print 'The log was not written because the logfile is open by, maybe, MS Excel.'
+
 
     def run(self):
         time.sleep(5 * np.random.rand())

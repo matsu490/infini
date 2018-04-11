@@ -14,14 +14,14 @@ sensor_names = ['EnvInfo', 'Analog_group1', 'Digital_sensors', 'Digital_counters
 time_stamp = '20180117124526'
 
 
-# load the data downloaded from the server as server_data
+# server_data: load the data downloaded from the server
 headers = ['time'] + ['d{}'.format(i+1) for i in xrange(8)] + ['a{}'.format(i+1) for i in xrange(8)] + ['eiTemp', 'eiHumi', 'eiLPrs', 'seaPrs', 'beacon', 'message']
 server_data_raw = pd.read_csv('./receivedata.csv', header=0, names=headers).set_index('time')
 begin = server_data_raw.index[0]
 end = server_data_raw.index[-1]
 
 for sensor_name in sensor_names:
-    # load the data stored by python as local_data
+    # local_data: load the data stored by python in local
     file_path = './Logs/IFT_ML1-YONEZAWA{:04d}/{}_{}.csv'.format(device_id, sensor_name, time_stamp)
     tmp_data = pd.read_csv(file_path).set_index('time')
     tmp_data = tmp_data.loc[begin:end, :]
@@ -33,7 +33,7 @@ for sensor_name in sensor_names:
 
     df = pd.concat([local_data[sensor_name], server_data[sensor_name]], axis=1)
     judge_table = local_data[sensor_name] == server_data[sensor_name]
-    result = all(judge_table)
+    result = all(judge_table.all())
     print judge_table
 
     okng = 'OK'*result + 'NG'*(not result)

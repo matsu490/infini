@@ -1,5 +1,10 @@
 # Change Log
 
+## [v0.1.3](https://github.com/matsu490/infini/tree/v0.1.3) (2018-04-11)
+**Implemented enhancements:**
+- ログファイルをエクセルで開いている時に生じる、書き込み不可エラーへの対処をした（チケット #2464 参照）
+- マッチングの際、judge_table に False が含まれていても OK 判定を返すバグの修正をした（チケット #2464 参照）
+
 ## [v0.1.2](https://github.com/matsu490/infini/tree/v0.1.2) (2018-01-17)
 **Implemented enhancements:**
 - typo (Envinfo -> EnvInfo)

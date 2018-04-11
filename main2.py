@@ -24,10 +24,13 @@ class Sensor(object):
         self.device_id = device_id
         self.header = []
         self.logfile_path = ''
+        self.temp_logfile_path = ''
+        self.io_error = False
 
     def _init_logfile(self):
         self._make_logdir()
         self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, self._timestamp())
+        self.temp_logfile_path = os.path.splitext(self.logfile_path)[0] + '.tmp'
         self._make_logfile(self.logfile_path, self.header + ['is_err'])
 
     def _timestamp(self):
@@ -48,15 +51,33 @@ class Sensor(object):
             self._write_log(self.logfile_path, line)
         except IOError:
             print 'The log was not written because the logfile is open by, maybe, MS Excel.'
-            temp_logfile_path = os.path.splitext(self.logfile_path)[0] + '.tmp'
-            self._make_logfile(temp_logfile_path, self.header + ['is_err'])
-            self._write_log(temp_logfile_path, line)
+            if self.io_error:
+                pass
+            # If the IOError didn't happen previously, make a new templogfile.
+            else:
+                self._make_logfile(self.temp_logfile_path, self.header + ['is_err'])
+            self._write_log(self.temp_logfile_path, line)
+            self.io_error = True
+        else:
+            # If the IOError happend previously, merge and remove the templogfile.
+            if self.io_error:
+                self._merge_templogfile()
+                os.remove(self.temp_logfile_path)
+            self.io_error = False
+
+    def _merge_templogfile(self):
+        with open(self.logfile_path, 'r') as f:
+            log_file = f.readlines()
+        with open(self.temp_logfile_path, 'r') as f:
+            temp_log = f.readlines()
+        log_file[-1:0] = temp_log[1:]
+        with open(self.logfile_path, 'w') as f:
+            f.writelines(log_file)
 
     def _make_logfile(self, file_path, line):
-        if not os.path.exists(file_path):
-            with open(file_path, 'w') as f:
-                writer = csv.writer(f, lineterminator='\n')
-                writer.writerow(line)
+        with open(file_path, 'w') as f:
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(line)
 
     def _write_log(self, file_path, line):
         with open(file_path, 'a') as f:

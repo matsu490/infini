@@ -22,45 +22,87 @@ class Sensor(object):
     def __init__(self, name, device_id):
         self.sensor_name = name
         self.device_id = device_id
+        self.header = []
+        self.logfile_path = ''
+        self.temp_logfile_path = ''
+        self.io_error = False
 
     def _init_logfile(self):
+        self._make_logdir()
+        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, self._timestamp())
+        self.temp_logfile_path = os.path.splitext(self.logfile_path)[0] + '.tmp'
+        self._make_logfile(self.logfile_path, self.header + ['is_err'])
+
+    def _timestamp(self):
+        d = datetime.datetime.fromtimestamp(time.time())
+        return '{0}{1:02d}{2:02d}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
+
+    def _make_logdir(self):
         try:
             os.mkdir('./Logs/{}'.format(self.device_id))
         except:
             pass
-        d = datetime.datetime.fromtimestamp(time.time())
-        dtime = '{0}{1:02d}{2:02d}{3:02d}{4:02d}{5:02d}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second)
-        self.logfile_path = './Logs/{}/{}_{}.csv'.format(self.device_id, self.sensor_name, dtime)
-        with open(self.logfile_path, 'w') as f:
-            writer = csv.writer(f, lineterminator='\n')
-            writer.writerow(self.header + ['is_err'])
 
-    def _log(self, is_err):
-        with open(self.logfile_path, 'a') as f:
+    def _logging(self, is_err):
+        d = datetime.datetime.fromtimestamp(self.data[0])
+        dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
+        line = [dtime] + self.data[1:] + [is_err]
+        try:
+            self._write_log(self.logfile_path, line)
+        except IOError:
+            print 'The log was not written because the logfile is open by, maybe, MS Excel.'
+            if self.io_error:
+                pass
+            # If the IOError didn't happen previously, make a new templogfile.
+            else:
+                self._make_logfile(self.temp_logfile_path, self.header + ['is_err'])
+            self._write_log(self.temp_logfile_path, line)
+            self.io_error = True
+        else:
+            # If the IOError happend previously, merge and remove the templogfile.
+            if self.io_error:
+                self._merge_templogfile()
+                os.remove(self.temp_logfile_path)
+            self.io_error = False
+
+    def _merge_templogfile(self):
+        with open(self.logfile_path, 'r') as f:
+            log_file = f.readlines()
+        with open(self.temp_logfile_path, 'r') as f:
+            temp_log = f.readlines()
+        log_file[-1:0] = temp_log[1:]
+        with open(self.logfile_path, 'w') as f:
+            f.writelines(log_file)
+
+    def _make_logfile(self, file_path, line):
+        with open(file_path, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
-            d = datetime.datetime.fromtimestamp(self.data[0])
-            dtime = '{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}.{6}'.format(d.year, d.month, d.day, d.hour, d.minute, d.second, str(round(1e-6 * d.microsecond, 2))[2:])
-            writer.writerow([dtime] + self.data[1:] + [is_err])
+            writer.writerow(line)
+
+    def _write_log(self, file_path, line):
+        with open(file_path, 'a') as f:
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(line)
 
     def run(self):
         time.sleep(5 * np.random.rand())
         while True:
-            self._make_data()
-            self._send_data()
+            self._make_sensor_data()
+            self._send_sensor_data()
             time.sleep(self.period)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         pass
 
-    def _send_data(self):
+    def _send_sensor_data(self):
         try:
             publish.single(topic='{}/{}'.format(self.password, self.device_id),
                     payload=self.payload, hostname=self.host,
                     auth={'username': self.username, 'password': self.password})
-            self._log(0)
+            self._logging(0)
             print '{}: {}\n'.format(self.sensor_name, self.payload)
         except:
-            self._log(1)
+            self._logging(1)
             print '{}: The payload was not send.'.format(self.sensor_name)
 
 
@@ -78,7 +120,7 @@ class Beacon(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         self.data = [tm, self.beacon]
         self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*self.data)
@@ -99,7 +141,7 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         eiTemp = round(np.random.rand() + 20   +  10*np.sin(2*np.pi*self.t), 2)
         eiHumi = round(np.random.rand() + 50   +  30*np.sin(2*np.pi*self.t), 2)
@@ -124,7 +166,7 @@ class DigitalSensors(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         self.data = [tm] + [np.random.randint(0, 2) for _ in self.port_ids]
         self.payload_ = ['"tm":"{0}"'.format(self.data[0])]
@@ -160,7 +202,7 @@ class DigitalCounter(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         self.data = [tm, np.random.randint(0, 50)]
         self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(self.data[0], self.port_id, self.data[1])
@@ -194,7 +236,7 @@ class AnalogSensors(Sensor, threading.Thread):
         self._init_logfile()
         self.setDaemon(True)
 
-    def _make_data(self):
+    def _make_sensor_data(self):
         tm = round(time.time(), 2)
         a1 = round(np.random.rand() + 10 + 10*np.sin(2*np.pi*self.t), 2)
         a2 = round(np.random.rand() + 20 + 20*np.sin(2*np.pi*self.t), 2)

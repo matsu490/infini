@@ -298,11 +298,16 @@ class Devices(object):
                 device_id = '{0}{1}'.format(self.device_name, '{:04d}'.format(i))
                 self.devices[i] = Device(self.username, self.password, self.host, device_id)
         else:
-            raise
+            raise DataRangeError()
 
     def switch_on(self):
         for i in xrange(1, self.n+1):
             self.devices[i].switch_on()
+
+
+class DataRangeError(Exception):
+    def __str__(self):
+        return 'The value is out of range.'
 
 
 if __name__ == '__main__':

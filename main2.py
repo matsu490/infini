@@ -281,15 +281,24 @@ class Device(object):
 
 
 class Devices(object):
-    def __init__(self, n, username, password, host):
+    def __init__(self, device_name, n, username, password, host):
+        self.device_name = device_name
         self.n = n
         self.username = username
         self.password = password
         self.host = host
         self.devices = {}
-        for i in xrange(1, n+1):
-            device_id = 'IFT_ML1-YONEZAWA{}'.format('{:04d}'.format(i))
-            self.devices[i] = Device(username, password, host, device_id)
+        self._init_devices()
+
+    def _init_devices(self):
+        if self.n == 1:
+            self.devices[1] = Device(self.username, self.password, self.host, self.device_name)
+        elif self.n > 1:
+            for i in xrange(1, self.n+1):
+                device_id = '{0}{1}'.format(self.device_name, '{:04d}'.format(i))
+                self.devices[i] = Device(self.username, self.password, self.host, device_id)
+        else:
+            raise
 
     def switch_on(self):
         for i in xrange(1, self.n+1):
@@ -297,7 +306,7 @@ class Devices(object):
 
 
 if __name__ == '__main__':
-    devices = Devices(N_DEVICE, USERNAME, PASSWORD, HOST)
+    devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
     devices.switch_on()
 
     while True:

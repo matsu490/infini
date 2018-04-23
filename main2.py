@@ -38,6 +38,24 @@ class InitDialog(tk.Frame, object):
         self.ok_button.grid(row=5, column=0)
 
 
+class SimpleFrame(tk.Frame, object):
+    def __init__(self, master, default_value, str1, str2):
+        super(SimpleFrame, self).__init__(master)
+        self.default_value = default_value
+        self.str1 = str1
+        self.str2 = str2
+        self._init_widgets()
+
+    def _init_widgets(self):
+        self.label1 = tk.Label(self, text=self.str1)
+        self.label2 = tk.Label(self, text=self.str2)
+        self.editbox = tk.Entry(self)
+        self.editbox.insert(tk.END, self.default_value)
+        self.label1.pack(side='left')
+        self.label2.pack(side='left')
+        self.editbox.pack(side='left')
+
+
 class AnalogGroupFrame(tk.Frame, object):
     def __init__(self, num, master=None):
         super(AnalogGroupFrame, self).__init__(master)

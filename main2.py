@@ -26,14 +26,16 @@ class InitDialog(tk.Frame, object):
         self._init_widgets()
 
     def _init_widgets(self):
-        self.frame4analog1 = AnalogGroupFrame(num=1, master=self)
-        self.frame4analog1.grid(row=0, column=0)
+        self.frame4analog = []
+        for i in xrange(4):
+            self.frame4analog.append(AnalogGroupFrame(num=i+1, master=self))
+            self.frame4analog[i].grid(row=i+1, column=0)
 
         self.ok_button = tk.Button(
                 self,
                 text='OK',
                 command=self.quit)
-        self.ok_button.grid(row=1, column=0, columnspan=5)
+        self.ok_button.grid(row=5, column=0)
 
 
 class AnalogGroupFrame(tk.Frame, object):

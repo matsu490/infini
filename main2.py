@@ -26,11 +26,17 @@ class InitDialog(tk.Frame, object):
         self._init_widgets()
 
     def _init_widgets(self):
+        self.bools4analog1 = [tk.BooleanVar() for i in xrange(8)]
+        self.checkboxes4analog1 = [tk.Checkbutton(variable=self.bools4analog1[i]) for i in xrange(8)]
+        for i in xrange(8):
+            self.bools4analog1[i].set(bool(ANALOG_GROUP1[i]))
+            self.checkboxes4analog1[i].pack(side='left')
+
         self.ok_button = tk.Button(
                 self,
                 text='OK',
                 command=self.quit)
-        self.ok_button.pack({'side': 'left'})
+        self.ok_button.pack()
 
 
 class Sensor(object):

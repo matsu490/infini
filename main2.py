@@ -27,12 +27,13 @@ class InitDialog(tk.Frame, object):
 
     def _init_widgets(self):
         self.frame4analog1 = AnalogGroupFrame(num=1, master=self)
+        self.frame4analog1.grid(row=0, column=0)
 
         self.ok_button = tk.Button(
                 self,
                 text='OK',
                 command=self.quit)
-        self.ok_button.pack()
+        self.ok_button.grid(row=1, column=0, columnspan=5)
 
 
 class AnalogGroupFrame(tk.Frame, object):
@@ -42,13 +43,13 @@ class AnalogGroupFrame(tk.Frame, object):
         self._init_widgets()
 
     def _init_widgets(self):
-        self.label = tk.Label(text='Analog group {}'.format(self.num))
-        self.period = tk.Spinbox(from_=0, to=900, increment=5, width=5)
+        self.label = tk.Label(self, text='Analog group {}'.format(self.num))
+        self.period = tk.Spinbox(self, from_=0, to=900, increment=5, width=5)
         self.label.pack(side='left')
         self.period.pack(side='left')
 
-        self.bools4analog1 = [tk.BooleanVar() for i in xrange(8)]
-        self.checkboxes4analog1 = [tk.Checkbutton(variable=self.bools4analog1[i]) for i in xrange(8)]
+        self.bools4analog1 = [tk.BooleanVar(self) for i in xrange(8)]
+        self.checkboxes4analog1 = [tk.Checkbutton(self, variable=self.bools4analog1[i]) for i in xrange(8)]
         for i in xrange(8):
             self.bools4analog1[i].set(bool(ANALOG_GROUP1[i]))
             self.checkboxes4analog1[i].pack(side='left')

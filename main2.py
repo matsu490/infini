@@ -47,13 +47,15 @@ class AnalogGroupFrame(tk.Frame, object):
     def _init_widgets(self):
         self.label = tk.Label(self, text='Analog group {}'.format(self.num))
         self.period = tk.Spinbox(self, from_=0, to=900, increment=5, width=5)
+        self.period.delete(0, 'end')
+        self.period.insert(0, eval('ANALOG_GROUP{}_PERIOD'.format(self.num)))
         self.label.pack(side='left')
         self.period.pack(side='left')
 
         self.bools4analog1 = [tk.BooleanVar(self) for i in xrange(8)]
         self.checkboxes4analog1 = [tk.Checkbutton(self, variable=self.bools4analog1[i]) for i in xrange(8)]
         for i in xrange(8):
-            self.bools4analog1[i].set(bool(ANALOG_GROUP1[i]))
+            self.bools4analog1[i].set(bool(eval('ANALOG_GROUP{}[i]'.format(self.num, self.num))))
             self.checkboxes4analog1[i].pack(side='left')
 
 

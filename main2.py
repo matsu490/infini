@@ -14,8 +14,23 @@ import time
 import datetime
 import paho.mqtt.publish as publish
 import threading
+import Tkinter as tk
 import numpy as np
 from params import *
+
+
+class InitDialog(tk.Frame, object):
+    def __init__(self, master=None):
+        super(InitDialog, self).__init__(master)
+        self.pack()
+        self._init_widgets()
+
+    def _init_widgets(self):
+        self.ok_button = tk.Button(
+                self,
+                text='OK',
+                command=self.quit)
+        self.ok_button.pack({'side': 'left'})
 
 
 class Sensor(object):
@@ -311,6 +326,13 @@ class DataRangeError(Exception):
 
 
 if __name__ == '__main__':
+    root = tk.Tk()
+    root.title('test')
+    root.geometry('400x300')
+    app = InitDialog(master=root)
+    app.mainloop()
+    root.destroy()
+
     devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
     devices.switch_on()
 

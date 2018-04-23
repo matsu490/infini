@@ -26,7 +26,7 @@ class InitDialog(tk.Frame, object):
         self._init_widgets()
 
     def _init_widgets(self):
-        self.frame4analog1 = AnalogGroupFrame(self)
+        self.frame4analog1 = AnalogGroupFrame(num=1, master=self)
 
         self.ok_button = tk.Button(
                 self,
@@ -36,13 +36,14 @@ class InitDialog(tk.Frame, object):
 
 
 class AnalogGroupFrame(tk.Frame, object):
-    def __init__(self, master=None):
+    def __init__(self, num, master=None):
         super(AnalogGroupFrame, self).__init__(master)
+        self.num = num
         self._init_widgets()
 
     def _init_widgets(self):
-        self.label = tk.Label(text='Analog group')
-        self.period = tk.Spinbox(from_=0, to=20, increment=5, width=5)
+        self.label = tk.Label(text='Analog group {}'.format(self.num))
+        self.period = tk.Spinbox(from_=0, to=900, increment=5, width=5)
         self.label.pack(side='left')
         self.period.pack(side='left')
 

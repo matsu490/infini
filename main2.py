@@ -40,8 +40,16 @@ class InitDialog(tk.Frame, object):
         self.ok_button = tk.Button(
                 self,
                 text='OK',
-                command=self.quit)
+                command=self._callback)
         self.ok_button.grid(row=6, column=0)
+
+    def _callback(self):
+        global USERNAME
+
+        # User name
+        USERNAME = self.user_name.get()
+
+        self.quit()
 
 
 class SimpleFrame(tk.Frame, object):
@@ -60,6 +68,9 @@ class SimpleFrame(tk.Frame, object):
         self.label1.pack(side='left')
         self.label2.pack(side='left')
         self.editbox.pack(side='left')
+
+    def get(self):
+        return self.editbox.get()
 
 
 class AnalogGroupFrame(tk.Frame, object):

@@ -26,21 +26,26 @@ class InitDialog(tk.Frame, object):
         self._init_widgets()
 
     def _init_widgets(self):
-        # User name
+        self._init_user_name()
+        self._init_password()
+        self._init_analog_groups()
+        self._init_ok_button()
+
+    def _init_user_name(self):
         self.user_name = SimpleFrame(self, USERNAME, 'User name', '')
         self.user_name.grid(row=0, column=0)
 
-        # Passward
+    def _init_password(self):
         self.password = SimpleFrame(self, PASSWORD, 'Password', '')
         self.password.grid(row=1, column=0)
 
-        # Analog group
+    def _init_analog_groups(self):
         self.frame4analog = []
         for i in xrange(4):
             self.frame4analog.append(AnalogGroupFrame(num=i+1, master=self))
             self.frame4analog[i].grid(row=i+3, column=0)
 
-        # OK button
+    def _init_ok_button(self):
         self.ok_button = tk.Button(
                 self,
                 text='OK',

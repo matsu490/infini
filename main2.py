@@ -458,6 +458,13 @@ if __name__ == '__main__':
 
     print USERNAME
     print PASSWORD
+    print HOST
+    print N_DEVICE
+    print DEVICE_NAME
+    print BEACON_PERIOD
+    print ENV_PERIOD
+    print DIGITAL_SENSOR_PERIOD
+    print DIGITAL_COUNTER_PERIODS
     print ANALOG_GROUP1_PERIOD
     print ANALOG_GROUP2_PERIOD
     print ANALOG_GROUP3_PERIOD

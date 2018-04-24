@@ -23,6 +23,7 @@ class InitDialog(tk.Frame, object):
     def __init__(self, master=None):
         super(InitDialog, self).__init__(master)
         self.pack()
+        self.UIs = []
         self._init_widgets()
 
     def _init_widgets(self):
@@ -33,29 +34,25 @@ class InitDialog(tk.Frame, object):
         self._init_ok_button()
 
     def _init_user_name(self):
-        self.user_name = SimpleFrame(self, USERNAME, 'User name', '')
-        self.user_name.grid(row=0, column=0)
+        self.UIs.append(SimpleFrame(self, USERNAME, 'User name', ''))
+        self.UIs[-1].grid(row=len(self.UIs), column=0)
 
     def _init_password(self):
-        self.password = SimpleFrame(self, PASSWORD, 'Password', '')
-        self.password.grid(row=1, column=0)
+        self.UIs.append(SimpleFrame(self, PASSWORD, 'Password', ''))
+        self.UIs[-1].grid(row=len(self.UIs), column=0)
 
     def _init_host(self):
-        self.host = SimpleFrame(self, HOST, 'Host', '')
-        self.host.grid(row=2, column=0)
+        self.UIs.append(SimpleFrame(self, HOST, 'Host', ''))
+        self.UIs[-1].grid(row=len(self.UIs), column=0)
 
     def _init_analog_groups(self):
-        self.frame4analog = []
         for i in xrange(4):
-            self.frame4analog.append(AnalogGroupFrame(num=i+1, master=self))
-            self.frame4analog[i].grid(row=i+4, column=0)
+            self.UIs.append(AnalogGroupFrame(num=i+1, master=self))
+            self.UIs[-1].grid(row=len(self.UIs), column=0)
 
     def _init_ok_button(self):
-        self.ok_button = tk.Button(
-                self,
-                text='OK',
-                command=self._callback)
-        self.ok_button.grid(row=8, column=0)
+        self.UIs.append(tk.Button(self, text='OK', command=self._callback))
+        self.UIs[-1].grid(row=len(self.UIs), column=0)
 
     def _callback(self):
         global \

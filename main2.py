@@ -51,6 +51,13 @@ class InitDialog(tk.Frame, object):
         global \
             USERNAME,  \
             PASSWORD,  \
+            HOST,  \
+            N_DEVICE,  \
+            DEVICE_NAME,  \
+            BEACON_PERIOD,  \
+            ENV_PERIOD,  \
+            DIGITAL_SENSOR_PERIOD,  \
+            DIGITAL_COUNTER_PERIODS,  \
             ANALOG_GROUP1_PERIOD,  \
             ANALOG_GROUP2_PERIOD,  \
             ANALOG_GROUP3_PERIOD,  \

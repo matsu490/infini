@@ -23,36 +23,22 @@ class InitDialog(tk.Frame, object):
     def __init__(self, master=None):
         super(InitDialog, self).__init__(master)
         self.pack()
-        self.UIs = []
+        self.UIs = {}
         self._init_widgets()
 
     def _init_widgets(self):
-        self._init_user_name()
-        self._init_password()
-        self._init_host()
-        self._init_analog_groups()
-        self._init_ok_button()
+        self._stack('User name', SimpleFrame(self, USERNAME, 'User name', ''))
+        self._stack('Password', SimpleFrame(self, PASSWORD, 'Password', ''))
+        self._stack('Host', SimpleFrame(self, HOST, 'Host', ''))
+        self._stack('Analog group1', AnalogGroupFrame(num=1, master=self))
+        self._stack('Analog group2', AnalogGroupFrame(num=2, master=self))
+        self._stack('Analog group3', AnalogGroupFrame(num=3, master=self))
+        self._stack('Analog group4', AnalogGroupFrame(num=4, master=self))
+        self._stack('OK button', tk.Button(self, text='OK', command=self._callback))
 
-    def _init_user_name(self):
-        self.UIs.append(SimpleFrame(self, USERNAME, 'User name', ''))
-        self.UIs[-1].grid(row=len(self.UIs), column=0)
-
-    def _init_password(self):
-        self.UIs.append(SimpleFrame(self, PASSWORD, 'Password', ''))
-        self.UIs[-1].grid(row=len(self.UIs), column=0)
-
-    def _init_host(self):
-        self.UIs.append(SimpleFrame(self, HOST, 'Host', ''))
-        self.UIs[-1].grid(row=len(self.UIs), column=0)
-
-    def _init_analog_groups(self):
-        for i in xrange(4):
-            self.UIs.append(AnalogGroupFrame(num=i+1, master=self))
-            self.UIs[-1].grid(row=len(self.UIs), column=0)
-
-    def _init_ok_button(self):
-        self.UIs.append(tk.Button(self, text='OK', command=self._callback))
-        self.UIs[-1].grid(row=len(self.UIs), column=0)
+    def _stack(self, name, UI):
+        self.UIs[name] = UI
+        self.UIs[name].grid(row=len(self.UIs), column=0)
 
     def _callback(self):
         global \
@@ -74,20 +60,21 @@ class InitDialog(tk.Frame, object):
             ANALOG_GROUP3,  \
             ANALOG_GROUP4
 
-        USERNAME = self.user_name.get()
-        PASSWORD = self.password.get()
-        ANALOG_GROUP1_PERIOD = int(self.frame4analog[0].period.get())
-        ANALOG_GROUP2_PERIOD = int(self.frame4analog[1].period.get())
-        ANALOG_GROUP3_PERIOD = int(self.frame4analog[2].period.get())
-        ANALOG_GROUP4_PERIOD = int(self.frame4analog[3].period.get())
+        USERNAME = self.UIs['User name'].get()
+        PASSWORD = self.UIs['Password'].get()
+        HOST = self.UIs['Host'].get()
+        ANALOG_GROUP1_PERIOD = int(self.UIs['Analog group1'].period.get())
+        ANALOG_GROUP2_PERIOD = int(self.UIs['Analog group2'].period.get())
+        ANALOG_GROUP3_PERIOD = int(self.UIs['Analog group3'].period.get())
+        ANALOG_GROUP4_PERIOD = int(self.UIs['Analog group4'].period.get())
         ANALOG_GROUP1 = [boolean_var.get()
-            for boolean_var in self.frame4analog[0].bools4analog1]
+            for boolean_var in self.UIs['Analog group1'].bools4analog1]
         ANALOG_GROUP2 = [boolean_var.get()
-            for boolean_var in self.frame4analog[1].bools4analog1]
+            for boolean_var in self.UIs['Analog group2'].bools4analog1]
         ANALOG_GROUP3 = [boolean_var.get()
-            for boolean_var in self.frame4analog[2].bools4analog1]
+            for boolean_var in self.UIs['Analog group3'].bools4analog1]
         ANALOG_GROUP4 = [boolean_var.get()
-            for boolean_var in self.frame4analog[3].bools4analog1]
+            for boolean_var in self.UIs['Analog group4'].bools4analog1]
 
         self.quit()
 

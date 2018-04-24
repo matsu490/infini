@@ -30,24 +30,28 @@ class InitDialog(tk.Frame, object):
         self.user_name = SimpleFrame(self, USERNAME, 'User name', '')
         self.user_name.grid(row=0, column=0)
 
+        # Passward
+        self.password = SimpleFrame(self, PASSWORD, 'Password', '')
+        self.password.grid(row=1, column=0)
+
         # Analog group
         self.frame4analog = []
         for i in xrange(4):
             self.frame4analog.append(AnalogGroupFrame(num=i+1, master=self))
-            self.frame4analog[i].grid(row=i+2, column=0)
+            self.frame4analog[i].grid(row=i+3, column=0)
 
         # OK button
         self.ok_button = tk.Button(
                 self,
                 text='OK',
                 command=self._callback)
-        self.ok_button.grid(row=6, column=0)
+        self.ok_button.grid(row=7, column=0)
 
     def _callback(self):
-        global USERNAME
+        global USERNAME, PASSWORD
 
-        # User name
         USERNAME = self.user_name.get()
+        PASSWORD = self.password.get()
 
         self.quit()
 

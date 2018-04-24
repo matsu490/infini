@@ -456,24 +456,6 @@ if __name__ == '__main__':
     app.mainloop()
     root.destroy()
 
-    print USERNAME
-    print PASSWORD
-    print HOST
-    print N_DEVICE
-    print DEVICE_NAME
-    print BEACON_PERIOD
-    print ENV_PERIOD
-    print DIGITAL_SENSOR_PERIOD
-    print DIGITAL_COUNTER_PERIODS
-    print ANALOG_GROUP1_PERIOD
-    print ANALOG_GROUP2_PERIOD
-    print ANALOG_GROUP3_PERIOD
-    print ANALOG_GROUP4_PERIOD
-    print ANALOG_GROUP1
-    print ANALOG_GROUP2
-    print ANALOG_GROUP3
-    print ANALOG_GROUP4
-
     devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
     devices.switch_on()
 

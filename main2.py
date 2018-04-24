@@ -48,10 +48,32 @@ class InitDialog(tk.Frame, object):
         self.ok_button.grid(row=7, column=0)
 
     def _callback(self):
-        global USERNAME, PASSWORD
+        global \
+            USERNAME,  \
+            PASSWORD,  \
+            ANALOG_GROUP1_PERIOD,  \
+            ANALOG_GROUP2_PERIOD,  \
+            ANALOG_GROUP3_PERIOD,  \
+            ANALOG_GROUP4_PERIOD,  \
+            ANALOG_GROUP1,  \
+            ANALOG_GROUP2,  \
+            ANALOG_GROUP3,  \
+            ANALOG_GROUP4
 
         USERNAME = self.user_name.get()
         PASSWORD = self.password.get()
+        ANALOG_GROUP1_PERIOD = int(self.frame4analog[0].period.get())
+        ANALOG_GROUP2_PERIOD = int(self.frame4analog[1].period.get())
+        ANALOG_GROUP3_PERIOD = int(self.frame4analog[2].period.get())
+        ANALOG_GROUP4_PERIOD = int(self.frame4analog[3].period.get())
+        ANALOG_GROUP1 = [boolean_var.get()
+            for boolean_var in self.frame4analog[0].bools4analog1]
+        ANALOG_GROUP2 = [boolean_var.get()
+            for boolean_var in self.frame4analog[1].bools4analog1]
+        ANALOG_GROUP3 = [boolean_var.get()
+            for boolean_var in self.frame4analog[2].bools4analog1]
+        ANALOG_GROUP4 = [boolean_var.get()
+            for boolean_var in self.frame4analog[3].bools4analog1]
 
         self.quit()
 
@@ -397,6 +419,17 @@ if __name__ == '__main__':
     app = InitDialog(master=root)
     app.mainloop()
     root.destroy()
+
+    print USERNAME
+    print PASSWORD
+    print ANALOG_GROUP1_PERIOD
+    print ANALOG_GROUP2_PERIOD
+    print ANALOG_GROUP3_PERIOD
+    print ANALOG_GROUP4_PERIOD
+    print ANALOG_GROUP1
+    print ANALOG_GROUP2
+    print ANALOG_GROUP3
+    print ANALOG_GROUP4
 
     devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
     devices.switch_on()

@@ -35,6 +35,7 @@ class InitDialog(tk.Frame, object):
         self._stack('Beacon period', SimpleFrame(self, BEACON_PERIOD, 'Beacon period', 'sec'))
         self._stack('Environment period', SimpleFrame(self, ENV_PERIOD, 'Environment period', 'sec'))
         self._stack('Digital sensor period', SimpleFrame(self, DIGITAL_SENSOR_PERIOD, 'Digital sensor period', 'sec'))
+        self._stack('Digital counter periods', DigitalCounterFrame(master=self))
         self._stack('Analog group1', AnalogGroupFrame(num=1, master=self))
         self._stack('Analog group2', AnalogGroupFrame(num=2, master=self))
         self._stack('Analog group3', AnalogGroupFrame(num=3, master=self))
@@ -73,6 +74,7 @@ class InitDialog(tk.Frame, object):
         BEACON_PERIOD = int(self.UIs['Beacon period'].get())
         ENV_PERIOD = int(self.UIs['Environment period'].get())
         DIGITAL_SENSOR_PERIOD = int(self.UIs['Digital sensor period'].get())
+        DIGITAL_COUNTER_PERIODS = [int(p.get()) for p in self.UIs['Digital counter periods'].spinboxes]
         ANALOG_GROUP1_PERIOD = int(self.UIs['Analog group1'].period.get())
         ANALOG_GROUP2_PERIOD = int(self.UIs['Analog group2'].period.get())
         ANALOG_GROUP3_PERIOD = int(self.UIs['Analog group3'].period.get())
@@ -108,6 +110,29 @@ class SimpleFrame(tk.Frame, object):
 
     def get(self):
         return self.editbox.get()
+
+
+class DigitalCounterFrame(tk.Frame, object):
+    def __init__(self, master=None):
+        super(DigitalCounterFrame, self).__init__(master)
+        self.label = 0
+        self.spinboxes = []
+        self._init_widgets()
+
+    def _init_widgets(self):
+        self._init_label()
+        self._init_spinboxes()
+
+    def _init_label(self):
+        self.label = tk.Label(self, text='Digital counter periods')
+        self.label.pack(side='left')
+
+    def _init_spinboxes(self):
+        for i, p in enumerate(DIGITAL_COUNTER_PERIODS):
+            self.spinboxes.append(tk.Spinbox(self, from_=0, to=900, increment=5, width=5))
+            self.spinboxes[-1].delete(0, 'end')
+            self.spinboxes[-1].insert(0, p)
+            self.spinboxes[-1].pack(side='left')
 
 
 class AnalogGroupFrame(tk.Frame, object):

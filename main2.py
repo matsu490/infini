@@ -28,6 +28,7 @@ class InitDialog(tk.Frame, object):
     def _init_widgets(self):
         self._init_user_name()
         self._init_password()
+        self._init_host()
         self._init_analog_groups()
         self._init_ok_button()
 
@@ -39,18 +40,22 @@ class InitDialog(tk.Frame, object):
         self.password = SimpleFrame(self, PASSWORD, 'Password', '')
         self.password.grid(row=1, column=0)
 
+    def _init_host(self):
+        self.host = SimpleFrame(self, HOST, 'Host', '')
+        self.host.grid(row=2, column=0)
+
     def _init_analog_groups(self):
         self.frame4analog = []
         for i in xrange(4):
             self.frame4analog.append(AnalogGroupFrame(num=i+1, master=self))
-            self.frame4analog[i].grid(row=i+3, column=0)
+            self.frame4analog[i].grid(row=i+4, column=0)
 
     def _init_ok_button(self):
         self.ok_button = tk.Button(
                 self,
                 text='OK',
                 command=self._callback)
-        self.ok_button.grid(row=7, column=0)
+        self.ok_button.grid(row=8, column=0)
 
     def _callback(self):
         global \

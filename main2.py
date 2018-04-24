@@ -44,7 +44,7 @@ class InitDialog(tk.Frame, object):
 
     def _stack(self, name, UI):
         self.UIs[name] = UI
-        self.UIs[name].grid(row=len(self.UIs), column=0)
+        self.UIs[name].grid(row=len(self.UIs), column=0, sticky=tk.W)
 
     def _callback(self):
         global \

@@ -451,7 +451,7 @@ class DataRangeError(Exception):
 if __name__ == '__main__':
     root = tk.Tk()
     root.title('test')
-    root.geometry('400x300')
+    root.geometry('500x350')
     app = InitDialog(master=root)
     app.mainloop()
     root.destroy()

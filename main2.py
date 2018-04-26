@@ -35,6 +35,7 @@ class MainDialog(tk.Frame, object):
         self._stack('User name', SimpleFrame(self, USERNAME, 'User name', ''))
         self._stack('Password', SimpleFrame(self, PASSWORD, 'Password', ''))
         self._stack('Host', SimpleFrame(self, HOST, 'Host', ''))
+        self._stack('Client ID', SimpleFrame(self, CLIENT_ID, 'Client ID', ''))
         self._stack('# of devices', SimpleFrame(self, N_DEVICE, '# of devices', ''))
         self._stack('Device name', SimpleFrame(self, DEVICE_NAME, 'Device name', ''))
         self._stack('Beacon period', SimpleFrame(self, BEACON_PERIOD, 'Beacon period', 'sec'))
@@ -72,6 +73,7 @@ class MainDialog(tk.Frame, object):
             USERNAME,  \
             PASSWORD,  \
             HOST,  \
+            CLIENT_ID,  \
             N_DEVICE,  \
             DEVICE_NAME,  \
             BEACON_PERIOD,  \
@@ -90,6 +92,7 @@ class MainDialog(tk.Frame, object):
         USERNAME = self.UIs['User name'].get()
         PASSWORD = self.UIs['Password'].get()
         HOST = self.UIs['Host'].get()
+        CLIENT_ID = self.UIs['Client ID'].get()
         N_DEVICE = int(self.UIs['# of devices'].get())
         DEVICE_NAME = self.UIs['Device name'].get()
         BEACON_PERIOD = int(self.UIs['Beacon period'].get())
@@ -113,6 +116,7 @@ class MainDialog(tk.Frame, object):
         print 'USERNAME: {}'.format(USERNAME)
         print 'PASSWORD: {}'.format(PASSWORD)
         print 'HOST: {}'.format(HOST)
+        print 'CLIENT_ID: {}'.format(CLIENT_ID)
         print 'N_DEVICE: {}'.format(N_DEVICE)
         print 'DEVICE_NAME: {}'.format(DEVICE_NAME)
         print 'BEACON_PERIOD: {}'.format(BEACON_PERIOD)
@@ -280,6 +284,7 @@ class Sensor(threading.Thread):
         try:
             publish.single(topic='{}/{}'.format(self.password, self.device_id),
                     payload=self.payload, hostname=self.host,
+                    client_id=CLIENT_ID,
                     auth={'username': self.username, 'password': self.password})
             self._logging(0)
             print '{}: {}\n'.format(self.sensor_name, self.payload)
@@ -506,7 +511,7 @@ class DataRangeError(Exception):
 if __name__ == '__main__':
     root = tk.Tk()
     root.title('test')
-    root.geometry('500x350')
+    root.geometry('500x400')
     app = MainDialog(master=root)
     app.mainloop()
     root.destroy()

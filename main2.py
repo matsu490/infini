@@ -19,15 +19,11 @@ import numpy as np
 from params import *
 
 
-def main():
-    devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
-    devices.switch_on()
-
-
 class MainDialog(tk.Frame, object):
     def __init__(self, master=None):
         super(MainDialog, self).__init__(master)
         self.pack()
+        self.devices = []
         self.UIs = {}
         self._init_widgets()
 
@@ -59,14 +55,26 @@ class MainDialog(tk.Frame, object):
         print '/////////////////////////////////////////'
         self._reset_global_vars()
         self._print_global_vars()
-        self.devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
-        self.devices.switch_on()
+        self.main()
+
+    def main(self):
+        if N_DEVICE == 1:
+            self.devices.append(Device(USERNAME, PASSWORD, HOST, DEVICE_NAME))
+            self.devices[-1].switch_on()
+        elif N_DEVICE > 1:
+            for i in xrange(1, N_DEVICE + 1):
+                device_id = '{0}{1}'.format(DEVICE_NAME, '{:04d}'.format(i))
+                self.devices.append(Device(USERNAME, PASSWORD, HOST, device_id))
+                self.devices[-1].switch_on()
+        else:
+            raise DataRangeError()
 
     def _cb_stop_button(self):
         print '/////////////////////////////////////////'
         print '///         Stop the devices          ///'
         print '/////////////////////////////////////////'
-        self.devices.switch_off()
+        for device in self.devices:
+            device.switch_off()
 
     def _reset_global_vars(self):
         global \
@@ -472,35 +480,6 @@ class Device(object):
         self.anagroup2.stop()
         self.anagroup3.stop()
         self.anagroup4.stop()
-
-
-class Devices(object):
-    def __init__(self, device_name, n, username, password, host):
-        self.device_name = device_name
-        self.n = n
-        self.username = username
-        self.password = password
-        self.host = host
-        self.devices = {}
-        self._init_devices()
-
-    def _init_devices(self):
-        if self.n == 1:
-            self.devices[1] = Device(self.username, self.password, self.host, self.device_name)
-        elif self.n > 1:
-            for i in xrange(1, self.n+1):
-                device_id = '{0}{1}'.format(self.device_name, '{:04d}'.format(i))
-                self.devices[i] = Device(self.username, self.password, self.host, device_id)
-        else:
-            raise DataRangeError()
-
-    def switch_on(self):
-        for i in xrange(1, self.n+1):
-            self.devices[i].switch_on()
-
-    def switch_off(self):
-        for i in xrange(1, self.n+1):
-            self.devices[i].switch_off()
 
 
 class DataRangeError(Exception):

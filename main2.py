@@ -364,23 +364,6 @@ class DigitalSensors(Sensor):
         self.payload = '{{{0}}}'.format(','.join(self.payload_))
 
 
-class DigitalCounters(object):
-    def __init__(self, username, password, host, device_id, port_ids, periods):
-        self.port_ids = port_ids
-        self.periods = periods
-        self.counters = {}
-        for i, (port_id, period) in enumerate(zip(port_ids, periods)):
-            self.counters[i] = DigitalCounter('Digital_counters', username, password, host, device_id, port_id, period)
-
-    def run(self):
-        for counter in self.counters.values():
-            counter.start()
-
-    def stop(self):
-        for counter in self.counters.values():
-            counter.stop()
-
-
 class DigitalCounter(Sensor):
     def __init__(self, name, username, password, host, device_id, port_id, period):
         super(DigitalCounter, self).__init__(name, device_id)
@@ -397,23 +380,6 @@ class DigitalCounter(Sensor):
         tm = round(time.time(), 2)
         self.data = [tm, np.random.randint(0, 50)]
         self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(self.data[0], self.port_id, self.data[1])
-
-
-class DigitalElements(object):
-    def __init__(self, username, password, host, device_id, global_period, periods=8*[0]):
-        sensor_ids = [i+1 for i, p in enumerate(periods) if p==0]
-        counter_ids = list(set(xrange(1, 9)) - set(sensor_ids))
-        counter_periods = [p for p in periods if p!=0]
-        self.sensors = DigitalSensors('Digital_sensors', username, password, host, device_id, sensor_ids, global_period)
-        self.counters = DigitalCounters(username, password, host, device_id, counter_ids, counter_periods)
-
-    def run(self):
-        self.sensors.start()
-        self.counters.run()
-
-    def stop(self):
-        self.sensors.stop()
-        self.counters.stop()
 
 
 class AnalogSensors(Sensor):
@@ -455,31 +421,27 @@ class Device(object):
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.beacon = Beacon('Beacon', username, password, host, device_id, BEACON_PERIOD, beacon=device_id)
-        self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, ENV_PERIOD)
-        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=DIGITAL_SENSOR_PERIOD, periods=DIGITAL_COUNTER_PERIODS)
-        self.anagroup1 = AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1)
-        self.anagroup2 = AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2)
-        self.anagroup3 = AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3)
-        self.anagroup4 = AnalogSensors('Analog_group4', username, password, host, device_id, ANALOG_GROUP4_PERIOD, ANALOG_GROUP4)
+        self.sensors = {
+            'beacon': Beacon('Beacon', username, password, host, device_id, BEACON_PERIOD, beacon=device_id),
+            'envinfo': EnvironmentalInformation('EnvInfo', username, password, host, device_id, ENV_PERIOD),
+            'anagroup1': AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1),
+            'anagroup2': AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2),
+            'anagroup3': AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3),
+            'anagroup4': AnalogSensors('Analog_group4', username, password, host, device_id, ANALOG_GROUP4_PERIOD, ANALOG_GROUP4)}
+        sensor_ids = [i+1 for i, p in enumerate(DIGITAL_COUNTER_PERIODS) if p==0]
+        counter_ids = list(set(xrange(1, 9)) - set(sensor_ids))
+        counter_periods = [p for p in DIGITAL_COUNTER_PERIODS if p!=0]
+        self.sensors['digi_snsrs'] = DigitalSensors('Digital_sensors', username, password, host, device_id, sensor_ids, DIGITAL_SENSOR_PERIOD)
+        for i, (counter_id, counter_period) in enumerate(zip(counter_ids, counter_periods)):
+            self.sensors['digi_cntr{}'.format(i)] = DigitalCounter('Digital_counters', username, password, host, device_id, counter_id, counter_period)
 
     def switch_on(self):
-        self.beacon.start()
-        self.envinfo.start()
-        self.digital_elems.run()
-        self.anagroup1.start()
-        self.anagroup2.start()
-        self.anagroup3.start()
-        self.anagroup4.start()
+        for sensor in self.sensors.values():
+            sensor.start()
 
     def switch_off(self):
-        self.beacon.stop()
-        self.envinfo.stop()
-        self.digital_elems.stop()
-        self.anagroup1.stop()
-        self.anagroup2.stop()
-        self.anagroup3.stop()
-        self.anagroup4.stop()
+        for sensor in self.sensors.values():
+            sensor.stop()
 
 
 class DataRangeError(Exception):

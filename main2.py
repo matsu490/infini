@@ -19,9 +19,14 @@ import numpy as np
 from params import *
 
 
-class InitDialog(tk.Frame, object):
+def main():
+    devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
+    devices.switch_on()
+
+
+class MainDialog(tk.Frame, object):
     def __init__(self, master=None):
-        super(InitDialog, self).__init__(master)
+        super(MainDialog, self).__init__(master)
         self.pack()
         self.UIs = {}
         self._init_widgets()
@@ -40,13 +45,29 @@ class InitDialog(tk.Frame, object):
         self._stack('Analog group2', AnalogGroupFrame(num=2, master=self))
         self._stack('Analog group3', AnalogGroupFrame(num=3, master=self))
         self._stack('Analog group4', AnalogGroupFrame(num=4, master=self))
-        self._stack('OK button', tk.Button(self, text='OK', command=self._callback))
+        self._stack('Run button', tk.Button(self, text='Run', command=self._cb_run_button))
+        self._stack('Stop button', tk.Button(self, text='Stop', command=self._cb_stop_button))
 
     def _stack(self, name, UI):
         self.UIs[name] = UI
         self.UIs[name].grid(row=len(self.UIs), column=0, sticky=tk.W)
 
-    def _callback(self):
+    def _cb_run_button(self):
+        print '/////////////////////////////////////////'
+        print '///         Run the devices           ///'
+        print '/////////////////////////////////////////'
+        self._reset_global_vars()
+        self._print_global_vars()
+        self.devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
+        self.devices.switch_on()
+
+    def _cb_stop_button(self):
+        print '/////////////////////////////////////////'
+        print '///         Stop the devices          ///'
+        print '/////////////////////////////////////////'
+        self.devices.switch_off()
+
+    def _reset_global_vars(self):
         global \
             USERNAME,  \
             PASSWORD,  \
@@ -88,7 +109,24 @@ class InitDialog(tk.Frame, object):
         ANALOG_GROUP4 = [boolean_var.get()
             for boolean_var in self.UIs['Analog group4'].bools4analog1]
 
-        self.quit()
+    def _print_global_vars(self):
+        print 'USERNAME: {}'.format(USERNAME)
+        print 'PASSWORD: {}'.format(PASSWORD)
+        print 'HOST: {}'.format(HOST)
+        print 'N_DEVICE: {}'.format(N_DEVICE)
+        print 'DEVICE_NAME: {}'.format(DEVICE_NAME)
+        print 'BEACON_PERIOD: {}'.format(BEACON_PERIOD)
+        print 'ENV_PERIOD: {}'.format(ENV_PERIOD)
+        print 'DIGITAL_SENSOR_PERIOD: {}'.format(DIGITAL_SENSOR_PERIOD)
+        print 'DIGITAL_COUNTER_PERIODS: {}'.format(DIGITAL_COUNTER_PERIODS)
+        print 'ANALOG_GROUP1_PERIOD: {}'.format(ANALOG_GROUP1_PERIOD)
+        print 'ANALOG_GROUP2_PERIOD: {}'.format(ANALOG_GROUP2_PERIOD)
+        print 'ANALOG_GROUP3_PERIOD: {}'.format(ANALOG_GROUP3_PERIOD)
+        print 'ANALOG_GROUP4_PERIOD: {}'.format(ANALOG_GROUP4_PERIOD)
+        print 'ANALOG_GROUP1: {}'.format(ANALOG_GROUP1)
+        print 'ANALOG_GROUP2: {}'.format(ANALOG_GROUP2)
+        print 'ANALOG_GROUP3: {}'.format(ANALOG_GROUP3)
+        print 'ANALOG_GROUP4: {}'.format(ANALOG_GROUP4)
 
 
 class SimpleFrame(tk.Frame, object):
@@ -156,14 +194,17 @@ class AnalogGroupFrame(tk.Frame, object):
             self.checkboxes4analog1[i].pack(side='left')
 
 
-class Sensor(object):
+class Sensor(threading.Thread):
     def __init__(self, name, device_id):
+        super(Sensor, self).__init__()
         self.sensor_name = name
         self.device_id = device_id
         self.header = []
         self.logfile_path = ''
         self.temp_logfile_path = ''
         self.io_error = False
+        self.setDaemon(True)
+        self.stop_event = threading.Event()
 
     def _init_logfile(self):
         self._make_logdir()
@@ -224,10 +265,13 @@ class Sensor(object):
 
     def run(self):
         time.sleep(5 * np.random.rand())
-        while True:
+        while not self.stop_event.is_set():
             self._make_sensor_data()
             self._send_sensor_data()
             time.sleep(self.period)
+
+    def stop(self):
+        self.stop_event.set()
 
     def _make_sensor_data(self):
         pass
@@ -244,10 +288,9 @@ class Sensor(object):
             print '{}: The payload was not send.'.format(self.sensor_name)
 
 
-class Beacon(Sensor, threading.Thread):
+class Beacon(Sensor):
     def __init__(self, name, username, password, host, device_id, period, beacon):
         super(Beacon, self).__init__(name, device_id)
-        super(Sensor, self).__init__()
         self.username = username
         self.password = password
         self.host = host
@@ -256,7 +299,6 @@ class Beacon(Sensor, threading.Thread):
         self.beacon = beacon
         self.header = ['time', 'beacon']
         self._init_logfile()
-        self.setDaemon(True)
 
     def _make_sensor_data(self):
         tm = round(time.time(), 2)
@@ -264,10 +306,9 @@ class Beacon(Sensor, threading.Thread):
         self.payload = '{{"tm":"{0}","Beacon":"{1}"}}'.format(*self.data)
 
 
-class EnvironmentalInformation(Sensor, threading.Thread):
+class EnvironmentalInformation(Sensor):
     def __init__(self, name, username, password, host, device_id, period):
         super(EnvironmentalInformation, self).__init__(name, device_id)
-        super(Sensor, self).__init__()
         self.username = username
         self.password = password
         self.host = host
@@ -277,7 +318,6 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.dt = 0.1
         self.header = ['time', 'eiTemp', 'eiHumi', 'eiLPrs', 'seaPrs']
         self._init_logfile()
-        self.setDaemon(True)
 
     def _make_sensor_data(self):
         tm = round(time.time(), 2)
@@ -290,10 +330,9 @@ class EnvironmentalInformation(Sensor, threading.Thread):
         self.payload = '{{"tm":"{0}","eiTemp":{1},"eiHumi":{2},"eiLPrs":{3},"seaPrs":{4}}}'.format(*self.data)
 
 
-class DigitalSensors(Sensor, threading.Thread):
+class DigitalSensors(Sensor):
     def __init__(self, name, username, password, host, device_id, port_ids, period):
         super(DigitalSensors, self).__init__(name, device_id)
-        super(Sensor, self).__init__()
         self.username = username
         self.password = password
         self.host = host
@@ -302,7 +341,6 @@ class DigitalSensors(Sensor, threading.Thread):
         self.period = period
         self.header = ['time'] + ['d{}'.format(port_id) for port_id in port_ids]
         self._init_logfile()
-        self.setDaemon(True)
 
     def _make_sensor_data(self):
         tm = round(time.time(), 2)
@@ -325,11 +363,14 @@ class DigitalCounters(object):
         for counter in self.counters.values():
             counter.start()
 
+    def stop(self):
+        for counter in self.counters.values():
+            counter.stop()
 
-class DigitalCounter(Sensor, threading.Thread):
+
+class DigitalCounter(Sensor):
     def __init__(self, name, username, password, host, device_id, port_id, period):
         super(DigitalCounter, self).__init__(name, device_id)
-        super(Sensor, self).__init__()
         self.username = username
         self.password = password
         self.host = host
@@ -338,7 +379,6 @@ class DigitalCounter(Sensor, threading.Thread):
         self.period = period
         self.header = ['time', 'd{}'.format(port_id)]
         self._init_logfile()
-        self.setDaemon(True)
 
     def _make_sensor_data(self):
         tm = round(time.time(), 2)
@@ -358,11 +398,14 @@ class DigitalElements(object):
         self.sensors.start()
         self.counters.run()
 
+    def stop(self):
+        self.sensors.stop()
+        self.counters.stop()
 
-class AnalogSensors(Sensor, threading.Thread):
+
+class AnalogSensors(Sensor):
     def __init__(self, name, username, password, host, device_id, period, check_box):
         super(AnalogSensors, self).__init__(name, device_id)
-        super(Sensor, self).__init__()
         self.username = username
         self.password = password
         self.host = host
@@ -374,7 +417,6 @@ class AnalogSensors(Sensor, threading.Thread):
         self.t = 0
         self.dt = 0.1
         self._init_logfile()
-        self.setDaemon(True)
 
     def _make_sensor_data(self):
         tm = round(time.time(), 2)
@@ -395,14 +437,14 @@ class AnalogSensors(Sensor, threading.Thread):
 
 
 class Device(object):
-    def __init__(self, username, password, host, device_id, p_beacon=BEACON_PERIOD, p_env=ENV_PERIOD, p_digi=DIGITAL_SENSOR_PERIOD):
+    def __init__(self, username, password, host, device_id):
         self.username = username
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.beacon = Beacon('Beacon', username, password, host, device_id, p_beacon, beacon=device_id)
-        self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, p_env)
-        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=p_digi, periods=DIGITAL_COUNTER_PERIODS)
+        self.beacon = Beacon('Beacon', username, password, host, device_id, BEACON_PERIOD, beacon=device_id)
+        self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, ENV_PERIOD)
+        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=DIGITAL_SENSOR_PERIOD, periods=DIGITAL_COUNTER_PERIODS)
         self.anagroup1 = AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1)
         self.anagroup2 = AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2)
         self.anagroup3 = AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3)
@@ -416,6 +458,15 @@ class Device(object):
         self.anagroup2.start()
         self.anagroup3.start()
         self.anagroup4.start()
+
+    def switch_off(self):
+        self.beacon.stop()
+        self.envinfo.stop()
+        self.digital_elems.stop()
+        self.anagroup1.stop()
+        self.anagroup2.stop()
+        self.anagroup3.stop()
+        self.anagroup4.stop()
 
 
 class Devices(object):
@@ -442,6 +493,10 @@ class Devices(object):
         for i in xrange(1, self.n+1):
             self.devices[i].switch_on()
 
+    def switch_off(self):
+        for i in xrange(1, self.n+1):
+            self.devices[i].switch_off()
+
 
 class DataRangeError(Exception):
     def __str__(self):
@@ -452,14 +507,6 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.title('test')
     root.geometry('500x350')
-    app = InitDialog(master=root)
+    app = MainDialog(master=root)
     app.mainloop()
     root.destroy()
-
-    devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
-    devices.switch_on()
-
-    while True:
-        c = sys.stdin.read(1)
-        if c == 'e':
-            sys.exit()

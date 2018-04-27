@@ -19,29 +19,25 @@ import numpy as np
 from params import *
 
 
-def main():
-    devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
-    devices.switch_on()
-
-
 class MainDialog(tk.Frame, object):
     def __init__(self, master=None):
         super(MainDialog, self).__init__(master)
         self.pack()
+        self.devices = []
         self.UIs = {}
         self._init_widgets()
 
     def _init_widgets(self):
-        self._stack('User name', SimpleFrame(self, USERNAME, 'User name', ''))
-        self._stack('Password', SimpleFrame(self, PASSWORD, 'Password', ''))
-        self._stack('Host', SimpleFrame(self, HOST, 'Host', ''))
-        self._stack('Client ID', SimpleFrame(self, CLIENT_ID, 'Client ID', ''))
-        self._stack('QoS', SimpleFrame(self, QOS, 'QoS', '0, 1, or 2'))
-        self._stack('# of devices', SimpleFrame(self, N_DEVICE, '# of devices', ''))
-        self._stack('Device name', SimpleFrame(self, DEVICE_NAME, 'Device name', ''))
-        self._stack('Beacon period', SimpleFrame(self, BEACON_PERIOD, 'Beacon period', 'sec'))
-        self._stack('Environment period', SimpleFrame(self, ENV_PERIOD, 'Environment period', 'sec'))
-        self._stack('Digital sensor period', SimpleFrame(self, DIGITAL_SENSOR_PERIOD, 'Digital sensor period', 'sec'))
+        self._stack('User name', EditboxFrame(self, USERNAME, 'User name', ''))
+        self._stack('Password', EditboxFrame(self, PASSWORD, 'Password', ''))
+        self._stack('Host', EditboxFrame(self, HOST, 'Host', ''))
+        self._stack('Client ID', EditboxFrame(self, CLIENT_ID, 'Client ID', ''))
+        self._stack('QoS', SpinboxFrame(self, QOS, 'QoS', '0, 1, or 2', min=0, max=2, inc=1))
+        self._stack('# of devices', SpinboxFrame(self, N_DEVICE, '# of devices', '', min=1))
+        self._stack('Device name', EditboxFrame(self, DEVICE_NAME, 'Device name', ''))
+        self._stack('Beacon period', SpinboxFrame(self, BEACON_PERIOD, 'Beacon period', 'sec'))
+        self._stack('Environment period', SpinboxFrame(self, ENV_PERIOD, 'Environment period', 'sec'))
+        self._stack('Digital sensor period', SpinboxFrame(self, DIGITAL_SENSOR_PERIOD, 'Digital sensor period', 'sec'))
         self._stack('Digital counter periods', DigitalCounterFrame(master=self))
         self._stack('Analog group1', AnalogGroupFrame(num=1, master=self))
         self._stack('Analog group2', AnalogGroupFrame(num=2, master=self))
@@ -49,6 +45,7 @@ class MainDialog(tk.Frame, object):
         self._stack('Analog group4', AnalogGroupFrame(num=4, master=self))
         self._stack('Run button', tk.Button(self, text='Run', command=self._cb_run_button))
         self._stack('Stop button', tk.Button(self, text='Stop', command=self._cb_stop_button))
+        self.UIs['Stop button'].configure(state=tk.DISABLED)
 
     def _stack(self, name, UI):
         self.UIs[name] = UI
@@ -58,16 +55,32 @@ class MainDialog(tk.Frame, object):
         print '/////////////////////////////////////////'
         print '///         Run the devices           ///'
         print '/////////////////////////////////////////'
+        self.UIs['Run button'].configure(state=tk.DISABLED)
+        self.UIs['Stop button'].configure(state=tk.NORMAL)
         self._reset_global_vars()
         self._print_global_vars()
-        self.devices = Devices(DEVICE_NAME, N_DEVICE, USERNAME, PASSWORD, HOST)
-        self.devices.switch_on()
+        self.main()
+
+    def main(self):
+        if N_DEVICE == 1:
+            self.devices.append(Device(USERNAME, PASSWORD, HOST, DEVICE_NAME))
+            self.devices[-1].switch_on()
+        elif N_DEVICE > 1:
+            for i in xrange(1, N_DEVICE + 1):
+                device_id = '{0}{1}'.format(DEVICE_NAME, '{:04d}'.format(i))
+                self.devices.append(Device(USERNAME, PASSWORD, HOST, device_id))
+                self.devices[-1].switch_on()
+        else:
+            raise DataRangeError()
 
     def _cb_stop_button(self):
         print '/////////////////////////////////////////'
         print '///         Stop the devices          ///'
         print '/////////////////////////////////////////'
-        self.devices.switch_off()
+        self.UIs['Run button'].configure(state=tk.NORMAL)
+        self.UIs['Stop button'].configure(state=tk.DISABLED)
+        for device in self.devices:
+            device.switch_off()
 
     def _reset_global_vars(self):
         global \
@@ -137,9 +150,31 @@ class MainDialog(tk.Frame, object):
         print 'ANALOG_GROUP4: {}'.format(ANALOG_GROUP4)
 
 
-class SimpleFrame(tk.Frame, object):
+class SpinboxFrame(tk.Frame, object):
+    def __init__(self, master, default_value, str1, str2, min=0, max=900, inc=5):
+        super(SpinboxFrame, self).__init__(master)
+        self.default_value = default_value
+        self.str1 = str1
+        self.str2 = str2
+        self._init_widgets(min, max, inc)
+
+    def _init_widgets(self, min, max, inc):
+        self.label1 = tk.Label(self, text=self.str1)
+        self.label2 = tk.Label(self, text=self.str2)
+        self.spinbox = tk.Spinbox(self, from_=min, to=max, increment=inc, width=5)
+        self.spinbox.delete(0, 'end')
+        self.spinbox.insert(0, self.default_value)
+        self.label1.pack(side='left')
+        self.spinbox.pack(side='left')
+        self.label2.pack(side='left')
+
+    def get(self):
+        return self.spinbox.get()
+
+
+class EditboxFrame(tk.Frame, object):
     def __init__(self, master, default_value, str1, str2):
-        super(SimpleFrame, self).__init__(master)
+        super(EditboxFrame, self).__init__(master)
         self.default_value = default_value
         self.str1 = str1
         self.str2 = str2
@@ -360,23 +395,6 @@ class DigitalSensors(Sensor):
         self.payload = '{{{0}}}'.format(','.join(self.payload_))
 
 
-class DigitalCounters(object):
-    def __init__(self, username, password, host, device_id, port_ids, periods):
-        self.port_ids = port_ids
-        self.periods = periods
-        self.counters = {}
-        for i, (port_id, period) in enumerate(zip(port_ids, periods)):
-            self.counters[i] = DigitalCounter('Digital_counters', username, password, host, device_id, port_id, period)
-
-    def run(self):
-        for counter in self.counters.values():
-            counter.start()
-
-    def stop(self):
-        for counter in self.counters.values():
-            counter.stop()
-
-
 class DigitalCounter(Sensor):
     def __init__(self, name, username, password, host, device_id, port_id, period):
         super(DigitalCounter, self).__init__(name, device_id)
@@ -393,23 +411,6 @@ class DigitalCounter(Sensor):
         tm = round(time.time(), 2)
         self.data = [tm, np.random.randint(0, 50)]
         self.payload = '{{"tm":"{0}","d{1}":{2}}}'.format(self.data[0], self.port_id, self.data[1])
-
-
-class DigitalElements(object):
-    def __init__(self, username, password, host, device_id, global_period, periods=8*[0]):
-        sensor_ids = [i+1 for i, p in enumerate(periods) if p==0]
-        counter_ids = list(set(xrange(1, 9)) - set(sensor_ids))
-        counter_periods = [p for p in periods if p!=0]
-        self.sensors = DigitalSensors('Digital_sensors', username, password, host, device_id, sensor_ids, global_period)
-        self.counters = DigitalCounters(username, password, host, device_id, counter_ids, counter_periods)
-
-    def run(self):
-        self.sensors.start()
-        self.counters.run()
-
-    def stop(self):
-        self.sensors.stop()
-        self.counters.stop()
 
 
 class AnalogSensors(Sensor):
@@ -451,60 +452,27 @@ class Device(object):
         self.password = password
         self.host = host
         self.device_id = device_id
-        self.beacon = Beacon('Beacon', username, password, host, device_id, BEACON_PERIOD, beacon=device_id)
-        self.envinfo = EnvironmentalInformation('EnvInfo', username, password, host, device_id, ENV_PERIOD)
-        self.digital_elems = DigitalElements(username, password, host, device_id, global_period=DIGITAL_SENSOR_PERIOD, periods=DIGITAL_COUNTER_PERIODS)
-        self.anagroup1 = AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1)
-        self.anagroup2 = AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2)
-        self.anagroup3 = AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3)
-        self.anagroup4 = AnalogSensors('Analog_group4', username, password, host, device_id, ANALOG_GROUP4_PERIOD, ANALOG_GROUP4)
+        self.sensors = {
+            'beacon': Beacon('Beacon', username, password, host, device_id, BEACON_PERIOD, beacon=device_id),
+            'envinfo': EnvironmentalInformation('EnvInfo', username, password, host, device_id, ENV_PERIOD),
+            'anagroup1': AnalogSensors('Analog_group1', username, password, host, device_id, ANALOG_GROUP1_PERIOD, ANALOG_GROUP1),
+            'anagroup2': AnalogSensors('Analog_group2', username, password, host, device_id, ANALOG_GROUP2_PERIOD, ANALOG_GROUP2),
+            'anagroup3': AnalogSensors('Analog_group3', username, password, host, device_id, ANALOG_GROUP3_PERIOD, ANALOG_GROUP3),
+            'anagroup4': AnalogSensors('Analog_group4', username, password, host, device_id, ANALOG_GROUP4_PERIOD, ANALOG_GROUP4)}
+        sensor_ids = [i+1 for i, p in enumerate(DIGITAL_COUNTER_PERIODS) if p==0]
+        counter_ids = list(set(xrange(1, 9)) - set(sensor_ids))
+        counter_periods = [p for p in DIGITAL_COUNTER_PERIODS if p!=0]
+        self.sensors['digi_snsrs'] = DigitalSensors('Digital_sensors', username, password, host, device_id, sensor_ids, DIGITAL_SENSOR_PERIOD)
+        for i, (counter_id, counter_period) in enumerate(zip(counter_ids, counter_periods)):
+            self.sensors['digi_cntr{}'.format(i)] = DigitalCounter('Digital_counters', username, password, host, device_id, counter_id, counter_period)
 
     def switch_on(self):
-        self.beacon.start()
-        self.envinfo.start()
-        self.digital_elems.run()
-        self.anagroup1.start()
-        self.anagroup2.start()
-        self.anagroup3.start()
-        self.anagroup4.start()
+        for sensor in self.sensors.values():
+            sensor.start()
 
     def switch_off(self):
-        self.beacon.stop()
-        self.envinfo.stop()
-        self.digital_elems.stop()
-        self.anagroup1.stop()
-        self.anagroup2.stop()
-        self.anagroup3.stop()
-        self.anagroup4.stop()
-
-
-class Devices(object):
-    def __init__(self, device_name, n, username, password, host):
-        self.device_name = device_name
-        self.n = n
-        self.username = username
-        self.password = password
-        self.host = host
-        self.devices = {}
-        self._init_devices()
-
-    def _init_devices(self):
-        if self.n == 1:
-            self.devices[1] = Device(self.username, self.password, self.host, self.device_name)
-        elif self.n > 1:
-            for i in xrange(1, self.n+1):
-                device_id = '{0}{1}'.format(self.device_name, '{:04d}'.format(i))
-                self.devices[i] = Device(self.username, self.password, self.host, device_id)
-        else:
-            raise DataRangeError()
-
-    def switch_on(self):
-        for i in xrange(1, self.n+1):
-            self.devices[i].switch_on()
-
-    def switch_off(self):
-        for i in xrange(1, self.n+1):
-            self.devices[i].switch_off()
+        for sensor in self.sensors.values():
+            sensor.stop()
 
 
 class DataRangeError(Exception):
@@ -518,4 +486,3 @@ if __name__ == '__main__':
     root.geometry('500x400')
     app = MainDialog(master=root)
     app.mainloop()
-    root.destroy()

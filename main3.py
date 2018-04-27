@@ -53,29 +53,29 @@ class MainDialog(tk.Frame, object):
                 self.UIs['User name'].get(),
                 self.UIs['Password'].get(),
                 self.UIs['QoS'].get(),
-                self.UIs['Device name'].get(),
-                payload)
-        publisher.publish_once()
+                self.UIs['Device name'].get())
+        publisher.publish_once(payload)
 
     def _cb_run_button(self):
         print '/////////////////////////////////////////'
         print '///        Publish (forever)          ///'
         print '/////////////////////////////////////////'
-        while True:
-            payload = '{{"tm":"{0}","{1}":"{2}"}}'.format(
-                    round(time.time(), 2),
-                    self.UIs['Recipient'].get(),
-                    self.UIs['Data'].get())
-            publisher = Publisher(
-                    self.UIs['Host'].get(),
-                    self.UIs['Client ID'].get(),
-                    self.UIs['User name'].get(),
-                    self.UIs['Password'].get(),
-                    self.UIs['QoS'].get(),
-                    self.UIs['Device name'].get(),
-                    payload)
-            publisher.publish_once()
-            time.sleep(5)
+        self._publish_forever()
+
+    def _publish_forever(self):
+        publisher = Publisher(
+                self.UIs['Host'].get(),
+                self.UIs['Client ID'].get(),
+                self.UIs['User name'].get(),
+                self.UIs['Password'].get(),
+                self.UIs['QoS'].get(),
+                self.UIs['Device name'].get())
+        payload = '{{"tm":"{0}","{1}":"{2}"}}'.format(
+                round(time.time(), 2),
+                self.UIs['Recipient'].get(),
+                self.UIs['Data'].get())
+        publisher.publish_once(payload)
+        self.after(1000, self._publish_forever)
 
     def _cb_stop_button(self):
         print '/////////////////////////////////////////'
@@ -83,11 +83,11 @@ class MainDialog(tk.Frame, object):
         print '/////////////////////////////////////////'
 
     def print_params(self):
-            for name, UI in self.UIs.items():
-                try:
-                    print '{}: {}'.format(name, UI.get())
-                except:
-                    pass
+        for name, UI in self.UIs.items():
+            try:
+                print '{}: {}'.format(name, UI.get())
+            except:
+                pass
 
 
 class SpinboxFrame(tk.Frame, object):
@@ -134,25 +134,23 @@ class EditboxFrame(tk.Frame, object):
 
 
 class Publisher(object):
-    def __init__(self, host, client_id, username, password, qos, device_id, payload):
+    def __init__(self, host, client_id, username, password, qos, device_id):
         self.host = host
         self.client_id = client_id
         self.username = username
         self.password = password
         self.qos = qos
         self.device_id = device_id
-        self.payload = payload
 
-    def publish_once(self):
+    def publish_once(self, payload):
         try:
             publish.single(
                     topic='{}/{}'.format(self.password, self.device_id),
-                    payload=self.payload, hostname=self.host,
+                    payload=payload, hostname=self.host,
                     client_id=self.client_id, qos=self.qos,
                     auth={'username': self.username, 'password': self.password})
-            print self.payload
+            print payload
         except:
-            print self.payload
             print 'The payload was not sent.'
 
 

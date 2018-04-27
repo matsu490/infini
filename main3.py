@@ -19,6 +19,7 @@ class MainDialog(tk.Frame, object):
     def __init__(self, master=None):
         super(MainDialog, self).__init__(master)
         self.pack()
+        self.forever_flag = False
         self.UIs = {}
         self._init_widgets()
 
@@ -34,12 +35,15 @@ class MainDialog(tk.Frame, object):
         self._stack('Publish button', tk.Button(self, text='Publish (once)', command=self._cb_publish_button))
         self._stack('Run button', tk.Button(self, text='Publish (forever)', command=self._cb_run_button))
         self._stack('Stop button', tk.Button(self, text='Stop', command=self._cb_stop_button))
+        self.UIs['Run button'].configure(state=tk.NORMAL)
+        self.UIs['Stop button'].configure(state=tk.DISABLED)
 
     def _stack(self, name, UI):
         self.UIs[name] = UI
         self.UIs[name].grid(row=len(self.UIs), column=0, sticky=tk.W)
 
     def _cb_publish_button(self):
+        print
         print '/////////////////////////////////////////'
         print '///          Publish (once)           ///'
         print '/////////////////////////////////////////'
@@ -57,10 +61,14 @@ class MainDialog(tk.Frame, object):
         publisher.publish_once(payload)
 
     def _cb_run_button(self):
+        print
         print '/////////////////////////////////////////'
         print '///        Publish (forever)          ///'
         print '/////////////////////////////////////////'
+        self.forever_flag = True
         self._publish_forever()
+        self.UIs['Run button'].configure(state=tk.DISABLED)
+        self.UIs['Stop button'].configure(state=tk.NORMAL)
 
     def _publish_forever(self):
         publisher = Publisher(
@@ -75,19 +83,17 @@ class MainDialog(tk.Frame, object):
                 self.UIs['Recipient'].get(),
                 self.UIs['Data'].get())
         publisher.publish_once(payload)
-        self.after(1000, self._publish_forever)
+        if self.forever_flag:
+            self.after(1000, self._publish_forever)
 
     def _cb_stop_button(self):
+        print
         print '/////////////////////////////////////////'
         print '///         Stop the devices          ///'
         print '/////////////////////////////////////////'
-
-    def print_params(self):
-        for name, UI in self.UIs.items():
-            try:
-                print '{}: {}'.format(name, UI.get())
-            except:
-                pass
+        self.forever_flag = False
+        self.UIs['Run button'].configure(state=tk.NORMAL)
+        self.UIs['Stop button'].configure(state=tk.DISABLED)
 
 
 class SpinboxFrame(tk.Frame, object):

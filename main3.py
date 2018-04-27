@@ -31,16 +31,17 @@ class MainDialog(tk.Frame, object):
         self._stack('Device name', EditboxFrame(self, DEVICE_NAME, 'Device name', ''))
         self._stack('Recipient', EditboxFrame(self, 'msg', 'Recipient', ''))
         self._stack('Data', EditboxFrame(self, '', 'Data', ''))
-        self._stack('Run button', tk.Button(self, text='Run', command=self._cb_run_button))
+        self._stack('Publish button', tk.Button(self, text='Publish (once)', command=self._cb_publish_button))
+        self._stack('Run button', tk.Button(self, text='Publish (forever)', command=self._cb_run_button))
         self._stack('Stop button', tk.Button(self, text='Stop', command=self._cb_stop_button))
 
     def _stack(self, name, UI):
         self.UIs[name] = UI
         self.UIs[name].grid(row=len(self.UIs), column=0, sticky=tk.W)
 
-    def _cb_run_button(self):
+    def _cb_publish_button(self):
         print '/////////////////////////////////////////'
-        print '///         Run the devices           ///'
+        print '///          Publish (once)           ///'
         print '/////////////////////////////////////////'
         payload = '{{"tm":"{0}","{1}":"{2}"}}'.format(
                 round(time.time(), 2),
@@ -55,7 +56,26 @@ class MainDialog(tk.Frame, object):
                 self.UIs['Device name'].get(),
                 payload)
         publisher.publish_once()
-        self.print_params()
+
+    def _cb_run_button(self):
+        print '/////////////////////////////////////////'
+        print '///        Publish (forever)          ///'
+        print '/////////////////////////////////////////'
+        while True:
+            payload = '{{"tm":"{0}","{1}":"{2}"}}'.format(
+                    round(time.time(), 2),
+                    self.UIs['Recipient'].get(),
+                    self.UIs['Data'].get())
+            publisher = Publisher(
+                    self.UIs['Host'].get(),
+                    self.UIs['Client ID'].get(),
+                    self.UIs['User name'].get(),
+                    self.UIs['Password'].get(),
+                    self.UIs['QoS'].get(),
+                    self.UIs['Device name'].get(),
+                    payload)
+            publisher.publish_once()
+            time.sleep(5)
 
     def _cb_stop_button(self):
         print '/////////////////////////////////////////'

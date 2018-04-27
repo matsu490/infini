@@ -28,16 +28,16 @@ class MainDialog(tk.Frame, object):
         self._init_widgets()
 
     def _init_widgets(self):
-        self._stack('User name', SimpleFrame(self, USERNAME, 'User name', ''))
-        self._stack('Password', SimpleFrame(self, PASSWORD, 'Password', ''))
-        self._stack('Host', SimpleFrame(self, HOST, 'Host', ''))
-        self._stack('Client ID', SimpleFrame(self, CLIENT_ID, 'Client ID', ''))
-        self._stack('QoS', SimpleFrame(self, QOS, 'QoS', '0, 1, or 2'))
-        self._stack('# of devices', SimpleFrame(self, N_DEVICE, '# of devices', ''))
-        self._stack('Device name', SimpleFrame(self, DEVICE_NAME, 'Device name', ''))
-        self._stack('Beacon period', SimpleFrame(self, BEACON_PERIOD, 'Beacon period', 'sec'))
-        self._stack('Environment period', SimpleFrame(self, ENV_PERIOD, 'Environment period', 'sec'))
-        self._stack('Digital sensor period', SimpleFrame(self, DIGITAL_SENSOR_PERIOD, 'Digital sensor period', 'sec'))
+        self._stack('User name', EditboxFrame(self, USERNAME, 'User name', ''))
+        self._stack('Password', EditboxFrame(self, PASSWORD, 'Password', ''))
+        self._stack('Host', EditboxFrame(self, HOST, 'Host', ''))
+        self._stack('Client ID', EditboxFrame(self, CLIENT_ID, 'Client ID', ''))
+        self._stack('QoS', SpinboxFrame(self, QOS, 'QoS', '0, 1, or 2', min=0, max=2, inc=1))
+        self._stack('# of devices', SpinboxFrame(self, N_DEVICE, '# of devices', '', min=1))
+        self._stack('Device name', EditboxFrame(self, DEVICE_NAME, 'Device name', ''))
+        self._stack('Beacon period', SpinboxFrame(self, BEACON_PERIOD, 'Beacon period', 'sec'))
+        self._stack('Environment period', SpinboxFrame(self, ENV_PERIOD, 'Environment period', 'sec'))
+        self._stack('Digital sensor period', SpinboxFrame(self, DIGITAL_SENSOR_PERIOD, 'Digital sensor period', 'sec'))
         self._stack('Digital counter periods', DigitalCounterFrame(master=self))
         self._stack('Analog group1', AnalogGroupFrame(num=1, master=self))
         self._stack('Analog group2', AnalogGroupFrame(num=2, master=self))
@@ -145,9 +145,31 @@ class MainDialog(tk.Frame, object):
         print 'ANALOG_GROUP4: {}'.format(ANALOG_GROUP4)
 
 
-class SimpleFrame(tk.Frame, object):
+class SpinboxFrame(tk.Frame, object):
+    def __init__(self, master, default_value, str1, str2, min=0, max=900, inc=5):
+        super(SpinboxFrame, self).__init__(master)
+        self.default_value = default_value
+        self.str1 = str1
+        self.str2 = str2
+        self._init_widgets(min, max, inc)
+
+    def _init_widgets(self, min, max, inc):
+        self.label1 = tk.Label(self, text=self.str1)
+        self.label2 = tk.Label(self, text=self.str2)
+        self.spinbox = tk.Spinbox(self, from_=min, to=max, increment=inc, width=5)
+        self.spinbox.delete(0, 'end')
+        self.spinbox.insert(0, self.default_value)
+        self.label1.pack(side='left')
+        self.spinbox.pack(side='left')
+        self.label2.pack(side='left')
+
+    def get(self):
+        return self.spinbox.get()
+
+
+class EditboxFrame(tk.Frame, object):
     def __init__(self, master, default_value, str1, str2):
-        super(SimpleFrame, self).__init__(master)
+        super(EditboxFrame, self).__init__(master)
         self.default_value = default_value
         self.str1 = str1
         self.str2 = str2

@@ -486,4 +486,3 @@ if __name__ == '__main__':
     root.geometry('500x400')
     app = MainDialog(master=root)
     app.mainloop()
-    root.destroy()

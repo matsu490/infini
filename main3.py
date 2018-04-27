@@ -8,6 +8,7 @@
 # Copyright (C) 2018 Taishi Matsumura
 #
 import os
+import time
 import paho.mqtt.publish as publish
 import Tkinter as tk
 import numpy as np
@@ -41,11 +42,32 @@ class MainDialog(tk.Frame, object):
         print '/////////////////////////////////////////'
         print '///         Run the devices           ///'
         print '/////////////////////////////////////////'
+        payload = '{{"tm":"{0}","{1}":"{2}"}}'.format(
+                round(time.time(), 2),
+                self.UIs['Recipient'].get(),
+                self.UIs['Data'].get())
+        publisher = Publisher(
+                self.UIs['Host'].get(),
+                self.UIs['Client ID'].get(),
+                self.UIs['User name'].get(),
+                self.UIs['Password'].get(),
+                self.UIs['QoS'].get(),
+                self.UIs['Device name'].get(),
+                payload)
+        publisher.publish_once()
+        self.print_params()
 
     def _cb_stop_button(self):
         print '/////////////////////////////////////////'
         print '///         Stop the devices          ///'
         print '/////////////////////////////////////////'
+
+    def print_params(self):
+            for name, UI in self.UIs.items():
+                try:
+                    print '{}: {}'.format(name, UI.get())
+                except:
+                    pass
 
 
 class SpinboxFrame(tk.Frame, object):
@@ -67,7 +89,7 @@ class SpinboxFrame(tk.Frame, object):
         self.label2.pack(side='left')
 
     def get(self):
-        return self.spinbox.get()
+        return int(self.spinbox.get())
 
 
 class EditboxFrame(tk.Frame, object):
@@ -89,6 +111,29 @@ class EditboxFrame(tk.Frame, object):
 
     def get(self):
         return self.editbox.get()
+
+
+class Publisher(object):
+    def __init__(self, host, client_id, username, password, qos, device_id, payload):
+        self.host = host
+        self.client_id = client_id
+        self.username = username
+        self.password = password
+        self.qos = qos
+        self.device_id = device_id
+        self.payload = payload
+
+    def publish_once(self):
+        try:
+            publish.single(
+                    topic='{}/{}'.format(self.password, self.device_id),
+                    payload=self.payload, hostname=self.host,
+                    client_id=self.client_id, qos=self.qos,
+                    auth={'username': self.username, 'password': self.password})
+            print self.payload
+        except:
+            print self.payload
+            print 'The payload was not sent.'
 
 
 if __name__ == '__main__':

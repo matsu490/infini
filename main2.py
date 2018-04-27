@@ -45,6 +45,7 @@ class MainDialog(tk.Frame, object):
         self._stack('Analog group4', AnalogGroupFrame(num=4, master=self))
         self._stack('Run button', tk.Button(self, text='Run', command=self._cb_run_button))
         self._stack('Stop button', tk.Button(self, text='Stop', command=self._cb_stop_button))
+        self.UIs['Stop button'].configure(state=tk.DISABLED)
 
     def _stack(self, name, UI):
         self.UIs[name] = UI
@@ -54,6 +55,8 @@ class MainDialog(tk.Frame, object):
         print '/////////////////////////////////////////'
         print '///         Run the devices           ///'
         print '/////////////////////////////////////////'
+        self.UIs['Run button'].configure(state=tk.DISABLED)
+        self.UIs['Stop button'].configure(state=tk.NORMAL)
         self._reset_global_vars()
         self._print_global_vars()
         self.main()
@@ -74,6 +77,8 @@ class MainDialog(tk.Frame, object):
         print '/////////////////////////////////////////'
         print '///         Stop the devices          ///'
         print '/////////////////////////////////////////'
+        self.UIs['Run button'].configure(state=tk.NORMAL)
+        self.UIs['Stop button'].configure(state=tk.DISABLED)
         for device in self.devices:
             device.switch_off()
 

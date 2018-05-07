@@ -261,7 +261,7 @@ class Sensor(threading.Thread):
 
     def _make_logdir(self):
         try:
-            os.mkdir('./Logs/{}'.format(self.device_id))
+            os.makedirs('./Logs/{}'.format(self.device_id))
         except:
             pass
 

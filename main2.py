@@ -242,6 +242,7 @@ class Sensor(threading.Thread):
         super(Sensor, self).__init__()
         self.sensor_name = name
         self.device_id = device_id
+        self.client_id = '{0}_{1}_{2}'.format(CLIENT_ID, self.device_id, self.sensor_name)
         self.header = []
         self.logfile_path = ''
         self.temp_logfile_path = ''
@@ -323,7 +324,7 @@ class Sensor(threading.Thread):
         try:
             publish.single(topic='{}/{}'.format(self.password, self.device_id),
                     payload=self.payload, hostname=self.host,
-                    client_id=CLIENT_ID, qos=QOS,
+                    client_id=self.client_id, qos=QOS,
                     auth={'username': self.username, 'password': self.password})
             self._logging(0)
             print '{}: {}\n'.format(self.sensor_name, self.payload)
